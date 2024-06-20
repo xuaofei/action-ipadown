@@ -4,7 +4,6 @@ name: IPA Down
 env:
   PYTHONIOENCODING: utf-8
   WEB_SERVER_ADDRESS: 127.0.0.1
-  TASK_ID: ""
 
 # Allow Release
 permissions: write-all
@@ -25,6 +24,9 @@ jobs:
             echo "No task available"
             exit 1
           fi
+
+          echo "TASK_ID=$TASK_ID" >> $GITHUB_ENV
+          echo "env.XAF_TEST=${{ env.TASK_ID }}"    
         shell: bash
 
       - name: Set up git repository
@@ -33,16 +35,13 @@ jobs:
         # Command
       - name: Setup ipatool-py
         run: |
-          git clone -b itunes_server https://github.com/xuaofei/ipatool-py
           pip3 install -r ipatool-py/requirements.txt
           mkdir -p ipaDown
         shell: bash
 
         # 安装iTunes和登录iTunes
       - name: Setup iTunes Header Service
-        uses: xuaofei/actions-iTunes-header@master
-        with:
-          task_id: ${{ env.TASK_ID }}
+        uses: ./iTunesAction
         
       - name: Execute operation
         id: operation
