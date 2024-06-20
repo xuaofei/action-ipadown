@@ -8,8 +8,8 @@ env:
 # Allow Release
 permissions: write-all
 
-on: 
-  workflow_dispatch:
+on: [push]
+  # workflow_dispatch:
 
 jobs:
   download_ipa:
@@ -18,7 +18,8 @@ jobs:
     steps:
       - name: request task
         run: |
-          TASK_ID=`curl http://175.10.88.30:7733/test`
+          # TASK_ID=`curl http://175.10.88.30:7733/test`
+          TASK_ID = "2024_06_20_0001"
           echo "TASK_ID=$TASK_ID"
           if [[ "$TASK_ID" == "" ]]; then
             echo "No task available"
