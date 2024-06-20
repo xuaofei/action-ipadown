@@ -30,7 +30,7 @@ jobs:
           echo "env.XAF_TEST=${{ env.TASK_ID }}"
           echo "env.XAF_TEST1=$env.TASK_ID"
           echo "env.XAF_TEST2=env.TASK_ID"
-          echo "env.XAF_TEST3=${env.TASK_ID}"
+          # echo "env.XAF_TEST3=${env.TASK_ID}"
           echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
