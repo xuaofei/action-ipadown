@@ -1,0 +1,5 @@
+rich>=10.2.2
+requests>=2.25.0
+pywinauto
+frida==16.3.3
+flask
