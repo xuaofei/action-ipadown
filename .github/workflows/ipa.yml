@@ -21,7 +21,7 @@ jobs:
           # WEB_TASK_ID=`curl http://175.10.88.30:7733/test`
           WEB_TASK_ID="2024_06_20_0001"
           echo "TASK_ID=$WEB_TASK_ID"
-          if [[ "$TASK_ID" == "" ]]; then
+          if [[ "$WEB_TASK_ID" == "" ]]; then
             echo "No task available"
             exit 1
           fi
