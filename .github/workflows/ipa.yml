@@ -42,6 +42,13 @@ jobs:
         run: |
           pip3 install -r ipatool-py/requirements.txt
           mkdir -p ipaDown
+
+          echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
+          echo "env.XAF_TEST=${{ env.TASK_ID }}"
+          echo "env.XAF_TEST1=$env.TASK_ID"
+          echo "env.XAF_TEST2=env.TASK_ID"
+          # echo "env.XAF_TEST3=${env.TASK_ID}"
+          echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
         # 安装iTunes和登录iTunes
