@@ -16,32 +16,36 @@ jobs:
     name: 'IPATool Operations'
     runs-on: "windows-latest"
     steps:
-      - name: request task
+      - name: step 1 --- request task id
         run: |
-          # TASK_ID=`curl http://175.10.88.30:7733/test`
-          TASK_ID="2024_06_20_0001"
-          echo "TASK_ID=$TASK_ID"
+          # WEB_TASK_ID=`curl http://175.10.88.30:7733/test`
+          WEB_TASK_ID="2024_06_20_0001"
+          echo "TASK_ID=$WEB_TASK_ID"
           if [[ "$TASK_ID" == "" ]]; then
             echo "No task available"
             exit 1
           fi
 
-          echo "TASK_ID=$TASK_ID" >> $GITHUB_ENV
-          echo "env.XAF_TEST=${{ env.TASK_ID }}"    
+          echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
+          echo "env.XAF_TEST=${{ env.TASK_ID }}"
+          echo "env.XAF_TEST1=$env.TASK_ID"
+          echo "env.XAF_TEST2=env.TASK_ID"
+          echo "env.XAF_TEST3=${env.TASK_ID}"
+          echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
-      - name: Set up git repository
+      - name: step 2 --- Set up git repository
         uses: actions/checkout@v2
 
         # Command
-      - name: Setup ipatool-py
+      - name: step 3 --- Setup ipatool-py
         run: |
           pip3 install -r ipatool-py/requirements.txt
           mkdir -p ipaDown
         shell: bash
 
         # 安装iTunes和登录iTunes
-      - name: Setup iTunes Header Service
+      - name: step 4 --- Setup iTunes Header Service
         uses: ./iTunesAction
         
       - name: Execute operation
