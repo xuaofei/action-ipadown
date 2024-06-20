@@ -30,6 +30,7 @@ jobs:
       - name: Set up git repository
         uses: actions/checkout@v2
 
+        # Command
       - name: Setup ipatool-py
         run: |
           git clone -b itunes_server https://github.com/xuaofei/ipatool-py
@@ -37,8 +38,11 @@ jobs:
           mkdir -p ipaDown
         shell: bash
 
+        # 安装iTunes和登录iTunes
       - name: Setup iTunes Header Service
         uses: xuaofei/actions-iTunes-header@master
+        with:
+          task_id: ${{ env.TASK_ID }}
         
       - name: Execute operation
         id: operation
