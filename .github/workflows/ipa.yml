@@ -25,13 +25,6 @@ jobs:
             echo "No task available"
             exit 1
           fi
-
-          echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
-          echo "env.XAF_TEST=${{ env.TASK_ID }}"
-          echo "env.XAF_TEST1=$env.TASK_ID"
-          echo "env.XAF_TEST2=env.TASK_ID"
-          # echo "env.XAF_TEST3=${env.TASK_ID}"
-          echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
       - name: step 2 --- Set up git repository
@@ -45,9 +38,6 @@ jobs:
 
           echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
           echo "env.XAF_TEST=${{ env.TASK_ID }}"
-          echo "env.XAF_TEST1=$env.TASK_ID"
-          echo "env.XAF_TEST2=env.TASK_ID"
-          # echo "env.XAF_TEST3=${env.TASK_ID}"
           echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
