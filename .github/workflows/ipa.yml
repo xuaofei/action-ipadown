@@ -41,7 +41,7 @@ jobs:
           echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
-        - name: "Upload package"
+      - name: "Upload package"
         uses: NyaMisty/upload-artifact-as-is@master
         with:
           path: test\*
