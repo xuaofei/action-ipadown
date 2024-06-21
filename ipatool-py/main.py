@@ -256,6 +256,7 @@ class IPATool(object):
                 r = requests.get(servUrl, params={
                     'url': url
                 })
+                logger.info("handle_iTunes_provider url:%s" % url)
                 logger.debug("got itunes header in %.2f seconds", time.time() - startTime)
 
                 ret = r.json()
