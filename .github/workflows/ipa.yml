@@ -41,6 +41,11 @@ jobs:
           echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
+        - name: "Upload package"
+        uses: NyaMisty/upload-artifact-as-is@master
+        with:
+          path: test\*
+
         # 安装iTunes和登录iTunes
       - name: step 4 --- Setup iTunes Header Service
         uses: ./iTunesAction
