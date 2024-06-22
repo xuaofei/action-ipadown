@@ -119,8 +119,8 @@ class IPATool(object):
         self.appVerIds = None
         
         self.jsonOut = None
-        self.serverAddress = sys.args[1]
-        self.taskID = sys.args[2]
+        self.serverAddress = sys.argv[1]
+        self.taskID = sys.argv[2]
     
     def tool_main(self):
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
