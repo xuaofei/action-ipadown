@@ -121,6 +121,8 @@ class IPATool(object):
         self.jsonOut = None
         self.serverAddress = sys.argv[1]
         self.taskID = sys.argv[2]
+
+        logger.info("serverAddress:%s taskID:%s" % (self.serverAddress, self.taskID))
     
     def tool_main(self):
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
@@ -508,10 +510,6 @@ class IPATool(object):
             return
         everything_succ = True
         for appVerId in self.appVerIds:
-            stateFile = args.output_dir + '/' + str(appVerId) + '.finish'
-            if os.path.exists(stateFile):
-                logger.info('Skipping already downloaded')
-                continue
             try:
                 self.appVerId = appVerId
                 self.downloadOne(args)
@@ -704,9 +702,11 @@ class IPATool(object):
         self.getAllVersionInfo(args)
 
     def downloadIpa(self):
+        logger.info("downloadIpa in")
+
         for i in range(10):
             try:
-                url = self.serverAddress + "/requestDownloadList"
+                url = self.serverAddress + "/scriptDownloadListRequest"
                 responseData = requests.post(url)
 
                 if responseData.status_code == 200 and len(responseData.text) > 0:

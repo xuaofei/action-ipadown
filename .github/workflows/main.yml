@@ -55,7 +55,7 @@ jobs:
 
       - name: step 5 --- Start Python Task
         run: |
-          python3 ipatool-py/main.py $WEB_SERVER_ADDRESS ${{ env.TASK_ID }}
+          python3 ipatool-py/main.py ${{ env.WEB_SERVER_ADDRESS }} ${{ env.TASK_ID }}
         shell: bash
         
       # - name: Execute operation
