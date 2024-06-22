@@ -112,7 +112,7 @@ def initITunes():
 
     # 请求用户名和密码
     data_json = json.dumps({'apple_id': sys.argv[1]})
-    url = webAddress + '/scriptLoginInfoHandler'
+    url = webAddress + '/scriptLoginInfoRequest'
     responseData = requests.post(url, data_json)
 
     print("uploadVersionInfo result:%d " % responseData.status_code)
