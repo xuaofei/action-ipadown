@@ -739,6 +739,7 @@ class IPATool(object):
 
         down_p = subp.add_parser('download')
         down_p.add_argument('--appId', '-i', dest='appId')
+        down_p.add_argument('--appVerId', dest='appVerId')
         down_p.add_argument('--output-dir', '-o', dest='output_dir', default='.')
         down_p.set_defaults(func=self.handleDownloadList)
 
