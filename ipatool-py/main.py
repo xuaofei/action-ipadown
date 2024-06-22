@@ -715,10 +715,10 @@ class IPATool(object):
                     logger.info("downloadIpa requestDownloadList success")
                     break
 
-                sleep(5)
+                time.sleep(5)
             except:
                 logger.info("downloadIpa retry:%d" % i)
-                sleep(2)
+                time.sleep(5)
                 pass
         else:
             logger.fatal("Failed to get download list from server")
