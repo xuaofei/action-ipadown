@@ -51,7 +51,7 @@ jobs:
 
         # 安装iTunes和登录iTunes
       - name: step 4 --- Setup iTunes Header Service
-        uses: ./iTunesAction
+        uses: ./iTunesInstallAndLoginAction
 
 
       - name: step 5 --- Start Python Task

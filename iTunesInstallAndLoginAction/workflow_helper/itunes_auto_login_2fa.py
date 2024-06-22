@@ -6,8 +6,8 @@ import sys
 import requests
 import json
 
-ACCOUNT = sys.argv[1]
-PASSWORD = sys.argv[2]
+# ACCOUNT = sys.argv[1]
+# PASSWORD = sys.argv[2]
 
 
 print("Launching iTunes...")
@@ -107,20 +107,36 @@ def initITunes():
         raise Exception("Failed to find login window in 15 iterations!")
     app.wait_cpu_usage_lower(10)
 
+
+    print("Request login info from %s" % webAddress)
+
+    # 请求用户名和密码
+    data_json = json.dumps({'apple_id': sys.argv[1]})
+    url = webAddress + '/scriptLoginInfoHandler'
+    responseData = requests.post(url, data_json)
+
+    print("uploadVersionInfo result:%d " % responseData.status_code)
+
+    jsonData = json.loads(responseData.text)
+    appleId = jsonData["apple_id"]
+    applePwd = jsonData["apple_pwd"]
+    print("request appleId:%s" % appleId)
+    print("request applePwd:%s" % applePwd)
+
     print("Setting login dialog edit texts")
 
     appleid_Edit = dialog.Edit1
     appleid_Edit.wait('ready')
     appleid_Edit.click_input()
-    appleid_Edit.type_keys(ACCOUNT)
-    appleid_Edit.set_edit_text(ACCOUNT)
+    appleid_Edit.type_keys(appleId)
+    appleid_Edit.set_edit_text(appleId)
     time.sleep(3)
 
     pass_Edit = dialog.Edit2
     pass_Edit.wait('ready')
     pass_Edit.click_input()
-    pass_Edit.type_keys(PASSWORD)
-    pass_Edit.set_edit_text(PASSWORD)
+    pass_Edit.type_keys(applePwd)
+    pass_Edit.set_edit_text(applePwd)
     time.sleep(3)
     
     print("Clicking login button!")
@@ -190,8 +206,6 @@ def initITunes():
             url = webAddress + '/request2FA'
             responseData = requests.post(url)
             jsonData = json.loads(responseData.text)
-            twoFACode = jsonData["two_fa_code"]
-            twoFACode = jsonData["two_fa_code"]
             twoFACode = jsonData["two_fa_code"]
             print("web 2FA is:%s" % twoFACode)
             
