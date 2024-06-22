@@ -446,13 +446,14 @@ class IPATool(object):
 
                 logger.fatal("error during downloading appVerId %s", appVerId, exc_info=1)
 
-        logger.info("getAllVersionInfo finish")
 
         url = self.serverAddress + "/uploadVersionsInfo"
         data_json = json.dumps({'task_id': self.taskID, 'version_count': len(self.appVerIds), 'all_version_list': allVersionList})
 
         r = requests.post(url, data_json)
         logger.info("uploadVersionInfo result:%d " % r.status_code)
+
+        logger.info("getAllVersionInfo finish")
 
     def getVersionInfoOne(self, args):
         if not self.appId:
@@ -707,7 +708,8 @@ class IPATool(object):
         for i in range(10):
             try:
                 url = self.serverAddress + "/scriptDownloadListRequest"
-                responseData = requests.post(url)
+                data_json = json.dumps({'task_id': self.taskID})
+                responseData = requests.post(url, data_json)
 
                 if responseData.status_code == 200 and len(responseData.text) > 0:
                     logger.info("downloadIpa requestDownloadList success")
@@ -715,6 +717,8 @@ class IPATool(object):
 
                 sleep(5)
             except:
+                logger.info("downloadIpa retry:%d" % i)
+                sleep(2)
                 pass
         else:
             logger.fatal("Failed to get download list from server")
