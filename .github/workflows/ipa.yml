@@ -3,7 +3,7 @@ name: IPA Down
 
 env:
   PYTHONIOENCODING: utf-8
-  WEB_SERVER_ADDRESS: 127.0.0.1
+  WEB_SERVER_ADDRESS: 175.10.91.86
 
 # Allow Release
 permissions: write-all
@@ -18,13 +18,16 @@ jobs:
     steps:
       - name: step 1 --- request task id
         run: |
-          # WEB_TASK_ID=`curl http://175.10.88.30:7733/test`
-          WEB_TASK_ID="2024_06_20_0001"
+          WEB_TASK_ID=`curl http://175.10.91.86:7733/scriptTaskIdRequest`
+          # WEB_TASK_ID="2024_06_20_0001"
           echo "TASK_ID=$WEB_TASK_ID"
           if [[ "$WEB_TASK_ID" == "" ]]; then
             echo "No task available"
             exit 1
           fi
+
+          # 保存环境变量
+          echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
         shell: bash
 
       - name: step 2 --- Set up git repository
@@ -36,62 +39,68 @@ jobs:
           pip3 install -r ipatool-py/requirements.txt
           mkdir -p ipaDown
 
-          echo "TASK_ID=$WEB_TASK_ID" >> $GITHUB_ENV
+          
           echo "env.XAF_TEST=${{ env.TASK_ID }}"
           echo "env.XAF_TEST4=$TASK_ID"
         shell: bash
 
-      - name: "Upload package"
-        uses: NyaMisty/upload-artifact-as-is@master
-        with:
-          path: test\*
+      # - name: "Upload package"
+      #   uses: NyaMisty/upload-artifact-as-is@master
+      #   with:
+      #     path: test\*
 
         # 安装iTunes和登录iTunes
       - name: step 4 --- Setup iTunes Header Service
         uses: ./iTunesAction
-        
-      - name: Execute operation
-        id: operation
-        run: |
-          # available operations: lookup, historyver, download, historyver_id, download_id
-          op=${{ github.event.inputs.operation }}
-          if [[ "$op" == "lookup" ]]; then
-            if [[ "${{ github.event.inputs.appBundleId }}" != "" ]]; then
-              python3 ipatool-py/main.py --json lookup --get-verid -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }}
-            else
-              python3 ipatool-py/main.py --json lookup --get-verid -i ${{ github.event.inputs.appId }} -c ${{ github.event.inputs.appCountry }}
-            fi
-          elif [[ "$op" == historyver* ]]; then
-            if [[ "$op" == "historyver" ]]; then
-              python3 ipatool-py/main.py --json lookup -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }} \
-                                                historyver -s http://127.0.0.1:9000
-            elif [[ "$op" == "historyver_id" ]]; then
-              python3 ipatool-py/main.py --json historyver -s http://127.0.0.1:9000 --appId ${{ github.event.inputs.id }}
-            fi
-          elif [[ "$op" == download* ]]; then
-            if [[ "${{ github.event.inputs.appVerId }}" == "" ]]; then
-              appVerCmd=""
-            else
-              appVerCmd="--appVerId ${{ github.event.inputs.appVerId }}"
-            fi
 
-            if [[ "$op" == "download" ]]; then
-              output=$(python3 ipatool-py/main.py --json lookup -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }} \
-                                                download -o ipaDown -s http://127.0.0.1:9000 $appVerCmd)
-            elif [[ "$op" == "download_id" ]]; then
-              output=$(python3 ipatool-py/main.py --json download -o ipaDown -s http://127.0.0.1:9000 --appId ${{ github.event.inputs.id }} $appVerCmd)
-            fi
-            echo "Got Downloading JSON result: $output"
-            echo "::set-output name=needIPARelease::1"
-            echo "::set-output name=appName::$(echo "$output" | jq -r '.appName')"
-            echo "::set-output name=appBundleId::$(echo "$output" | jq -r '.appBundleId')"
-            echo "::set-output name=appVer::$(echo "$output" | jq -r '.appVer')"
-            echo "::set-output name=appId::$(echo "$output" | jq -r '.appId')"
-            echo "::set-output name=appVerId::$(echo "$output" | jq -r '.appVerId')"
-          else
-            echo "Unknown Operation: $op"
-          fi
+
+      - name: step 5 --- Start Python Task
+        run: |
+          python3 ipatool-py/main.py ${{ env.TASK_ID }}
         shell: bash
+        
+      # - name: Execute operation
+      #   id: operation
+      #   run: |
+      #     # available operations: lookup, historyver, download, historyver_id, download_id
+      #     op=${{ github.event.inputs.operation }}
+      #     if [[ "$op" == "lookup" ]]; then
+      #       if [[ "${{ github.event.inputs.appBundleId }}" != "" ]]; then
+      #         python3 ipatool-py/main.py --json lookup --get-verid -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }}
+      #       else
+      #         python3 ipatool-py/main.py --json lookup --get-verid -i ${{ github.event.inputs.appId }} -c ${{ github.event.inputs.appCountry }}
+      #       fi
+      #     elif [[ "$op" == historyver* ]]; then
+      #       if [[ "$op" == "historyver" ]]; then
+      #         python3 ipatool-py/main.py --json lookup -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }} \
+      #                                           historyver -s http://127.0.0.1:9000
+      #       elif [[ "$op" == "historyver_id" ]]; then
+      #         python3 ipatool-py/main.py --json historyver -s http://127.0.0.1:9000 --appId ${{ github.event.inputs.id }}
+      #       fi
+      #     elif [[ "$op" == download* ]]; then
+      #       if [[ "${{ github.event.inputs.appVerId }}" == "" ]]; then
+      #         appVerCmd=""
+      #       else
+      #         appVerCmd="--appVerId ${{ github.event.inputs.appVerId }}"
+      #       fi
+
+      #       if [[ "$op" == "download" ]]; then
+      #         output=$(python3 ipatool-py/main.py --json lookup -b ${{ github.event.inputs.appBundleId }} -c ${{ github.event.inputs.appCountry }} \
+      #                                           download -o ipaDown -s http://127.0.0.1:9000 $appVerCmd)
+      #       elif [[ "$op" == "download_id" ]]; then
+      #         output=$(python3 ipatool-py/main.py --json download -o ipaDown -s http://127.0.0.1:9000 --appId ${{ github.event.inputs.id }} $appVerCmd)
+      #       fi
+      #       echo "Got Downloading JSON result: $output"
+      #       echo "::set-output name=needIPARelease::1"
+      #       echo "::set-output name=appName::$(echo "$output" | jq -r '.appName')"
+      #       echo "::set-output name=appBundleId::$(echo "$output" | jq -r '.appBundleId')"
+      #       echo "::set-output name=appVer::$(echo "$output" | jq -r '.appVer')"
+      #       echo "::set-output name=appId::$(echo "$output" | jq -r '.appId')"
+      #       echo "::set-output name=appVerId::$(echo "$output" | jq -r '.appVerId')"
+      #     else
+      #       echo "Unknown Operation: $op"
+      #     fi
+      #   shell: bash
         
       - name: "Upload package"
         uses: NyaMisty/upload-artifact-as-is@master

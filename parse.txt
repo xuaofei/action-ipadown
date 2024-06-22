@@ -94,18 +94,19 @@ findstr  /i "viewGrouping?cc=" Cache.db
 C:\Users\leagsoft\AppData\Roaming\Apple Computer\Preferences\ByHost
 
 
+zhongguohunanyiyangcangshuipu@gmail.com
+
+
+-- Cur top win: hwndwrapper.DialogWrapper - 'iTunes', iTunesCustomModalDialog, texts: ['iTunes', '', 'This Apple\xa0ID is only valid for purchases in:\nJapan.\nYou will be switched to that Store.', '', '', '', 'OK', '&OK', 'Other', '', '', '?']
+.DialogWrapper - 'iTunes', iTunesCustomModalDialog, texts: ['iTunes', '', 'Item Not Available', '', '', "The item you've requested is not currently available in Apple Music in Japan.", 'OK', '&OK', 'Other', '', '', '?']
+-- Cur top win: hwndwrapper.DialogWrapper - 'iTunes', iTunesCustomModalDialog, texts: ['iTunes', '', 'Item Not Available', '', '', 'The item you have requested is not currently available in Apple Music in China mainland.', 'OK', '&OK', 
 
 
 
 
 
-
-
-
-
-
-
-
+OKOKOK
+>python3 ./ipatool-py-master/main.py lookup -b com.baishancloud.vpn -c cn download --purchase -e fsi2clsfiz8@163.com -p Ls112211
 
 
 

@@ -188,7 +188,7 @@ def initITunes():
         print("Start request 2FA from web")
         for i in range(12):
             url = webAddress + '/request2FA'
-            responseData = requests.get(url)
+            responseData = requests.post(url)
             jsonData = json.loads(responseData.text)
             twoFACode = jsonData["two_fa_code"]
             twoFACode = jsonData["two_fa_code"]
