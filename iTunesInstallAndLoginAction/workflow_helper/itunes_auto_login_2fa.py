@@ -5,12 +5,32 @@ from win32con import *
 import sys
 import requests
 import json
+import logging
+from rich.logging import RichHandler
+from rich.console import Console
+import rich
 
-# ACCOUNT = sys.argv[1]
-# PASSWORD = sys.argv[2]
+rich.get_console().file = sys.stderr
+if rich.get_console().width < 100:
+    rich.get_console().width = 100
+
+logging_handler = RichHandler(rich_tracebacks=True)
+logging.basicConfig(
+    level="INFO",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[logging_handler]
+)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+retryLogger = logging.getLogger('urllib3.util.retry')
+retryLogger.setLevel(logging.DEBUG)
+retryLogger.handlers = [logging_handler]
+retryLogger.propagate = False
+
+logger = logging.getLogger('main')
 
 
-print("Launching iTunes...")
+logger.info("Launching iTunes...")
 webAddress = "http://175.10.91.86:7733"
 
 def initITunes():
@@ -27,17 +47,17 @@ def initITunes():
         texts += topwin.texts()
         for c in topwin.iter_children():
             texts += c.texts()
-        print("-- Cur top win: %s, texts: %s" % (topwin, texts))
+        logger.info("-- Cur top win: %s, texts: %s" % (topwin, texts))
         return "-- Cur top win: %s, texts: %s" % (topwin, texts)
 
     def cleanAllDialog():
         while True:
             topwin = app.top_window().wait('exists')
             if 'Dialog' in topwin.class_name():
-                print("    Closing dialog %s" % topwin.window_text())
+                logger.info("    Closing dialog %s" % topwin.window_text())
                 app.top_window().Button0.click()
             elif 'Tour' in topwin.window_text():
-                print("    Closing Window %s" % topwin.window_text())
+                logger.info("    Closing Window %s" % topwin.window_text())
                 topwin.close()
             else:
                 break
@@ -55,20 +75,20 @@ def initITunes():
     # Click main window's first-time question ("No thanks" button)
     try:
         buttonText = app.iTunes.Button11.wait('ready').window_text()
-        print('Button11 text is: %s' % buttonText)
+        logger.info('Button11 text is: %s' % buttonText)
         if 'Search' not in buttonText:
-            print("Clicked 'No Thanks' Button!")
+            logger.info("Clicked 'No Thanks' Button!")
             app.iTunes.Button11.click_input()
             app.wait_cpu_usage_lower(10)
             time.sleep(4)
         else:
             raise Exception('stub')
     except:
-        print("Not founding 'No Thanks' Button, passing on...")
+        logger.info("Not founding 'No Thanks' Button, passing on...")
 
 
     # Start logging in by clicking toolbar menu "Account"
-    print("Clicking Account menu...")
+    logger.info("Clicking Account menu...")
     app.iTunes.Application.Static3.click()
     app.wait_cpu_usage_lower(10)
     time.sleep(3)
@@ -82,7 +102,7 @@ def initITunes():
         return
         # raise Exception("Already logged in!")
     
-    print("Signin menu presented, clicking to login!")
+    logger.info("Signin menu presented, clicking to login!")
     # not log in
     popup.menu().item(1).click_input()
     app.wait_cpu_usage_lower(10)
@@ -93,7 +113,7 @@ def initITunes():
         dialog = app.top_window()
         dialogWrap = dialog.wait('ready')
         assert dialogWrap.friendly_class_name() == 'Dialog'
-        print("friendly_class_name is %s" % dialogWrap.friendly_class_name())
+        logger.info("friendly_class_name is %s" % dialogWrap.friendly_class_name())
         time.sleep(1.0)
         try:
             if dialogWrap.window_text() == 'iTunes' \
@@ -108,22 +128,22 @@ def initITunes():
     app.wait_cpu_usage_lower(10)
 
 
-    print("Request login info from %s" % webAddress)
+    logger.info("Request login info from %s" % webAddress)
 
     # 请求用户名和密码
     data_json = json.dumps({'task_id': sys.argv[1]})
     url = webAddress + '/scriptLoginInfoRequest'
     responseData = requests.post(url, data_json)
 
-    print("uploadVersionInfo result:%d " % responseData.status_code)
+    logger.info("uploadVersionInfo result:%d " % responseData.status_code)
 
     jsonData = json.loads(responseData.text)
     appleId = jsonData["apple_id"]
     applePwd = jsonData["apple_pwd"]
-    print("request appleId:%s" % appleId)
-    print("request applePwd:%s" % applePwd)
+    logger.info("request appleId:%s" % appleId)
+    logger.info("request applePwd:%s" % applePwd)
 
-    print("Setting login dialog edit texts")
+    logger.info("Setting login dialog edit texts")
 
     appleid_Edit = dialog.Edit1
     appleid_Edit.wait('ready')
@@ -139,7 +159,7 @@ def initITunes():
     pass_Edit.set_edit_text(applePwd)
     time.sleep(3)
     
-    print("Clicking login button!")
+    logger.info("Clicking login button!")
     loginButton = dialog.Button1
     loginButton.wait('ready')
     # click multiple times as pywinauto seems to have some bug
@@ -153,7 +173,7 @@ def initITunes():
         pass
     
 
-    print("Waiting login result...")
+    logger.info("Waiting login result...")
     time.sleep(10)
     debugText = debugTopWin()
     
@@ -163,30 +183,30 @@ def initITunes():
         raise Exception("Verification Failed: %s" % app.top_window().Static2.window_text())
 
 
-    print("Check 2FA auth...")
+    logger.info("Check 2FA auth...")
     need2FA = False
     for i in range(5):
         winText = debugTopWin()
         if "Enter the verification code sent to your other devices." in winText:
-            print("need 2FA auth")
+            logger.info("need 2FA auth")
             need2FA = True
             dialog = app.top_window()
             dialogWrap = dialog.wait('ready')
             break
         else:
-            print("check 2FA auth sleep 3s")
+            logger.info("check 2FA auth sleep 3s")
             time.sleep(3.0)
     
     
         # dialog = app.top_window()
         # dialogWrap = dialog.wait('ready')
         # assert dialogWrap.friendly_class_name() == 'Dialog'
-        # print("2FA friendly_class_name is %s" % dialogWrap.friendly_class_name())
+        # logger.info("2FA friendly_class_name is %s" % dialogWrap.friendly_class_name())
         # time.sleep(1.0)
         # try:
             # if dialogWrap.window_text() == 'iTunes' \
                 # and dialog.Button1.wait('exists').window_text() == 'Continue':
-                # print("need 2FA auth 1")
+                # logger.info("need 2FA auth 1")
                 # need2FA = true
                 # break
         # except Exception as e:
@@ -196,23 +216,23 @@ def initITunes():
     app.wait_cpu_usage_lower(10)
 
     if need2FA == True:
-        print("need 2FA")
+        logger.info("need 2FA")
     else:
-        print("not need 2FA")
+        logger.info("not need 2FA")
     
     if need2FA == True:
-        print("Start request 2FA from web")
+        logger.info("Start request 2FA from web")
         for i in range(12):
             url = webAddress + '/request2FA'
             responseData = requests.post(url)
             jsonData = json.loads(responseData.text)
             twoFACode = jsonData["two_fa_code"]
-            print("web 2FA is:%s" % twoFACode)
+            logger.info("web 2FA is:%s" % twoFACode)
             
             if len(twoFACode) == 6:
                 break
             
-            print("not read 2FA from web, sleep 10s ,2FA len： %d" % len(twoFACode))
+            logger.info("not read 2FA from web, sleep 10s ,2FA len： %d" % len(twoFACode))
             time.sleep(10.0)
         else:
             raise Exception("not read 2FA in 15 iterations!")
@@ -224,7 +244,7 @@ def initITunes():
         twoFA5 = twoFACode[4]
         twoFA6 = twoFACode[5]
         
-        print("Setting 2FA dialog edit texts")
+        logger.info("Setting 2FA dialog edit texts")
         
         twoFA_Edit1 = dialog.Edit1
         twoFA_Edit1.wait('ready')
@@ -270,7 +290,7 @@ def initITunes():
         time.sleep(1)
         
         
-        print("Clicking 2FA button!")
+        logger.info("Clicking 2FA button!")
         loginButton = dialog.Button1
         loginButton.wait('ready')
         # click multiple times as pywinauto seems to have some bug
@@ -284,7 +304,7 @@ def initITunes():
             pass
             
             
-        print("Waiting 2FA result...")
+        logger.info("Waiting 2FA result...")
         time.sleep(10)
         debugTopWin()
 
@@ -296,7 +316,7 @@ def initITunes():
     app.wait_cpu_usage_lower(10)
 
     # Finish & Cleanup
-    print("Waiting all dialogs to finish")
+    logger.info("Waiting all dialogs to finish")
     time.sleep(5)
     cleanAllDialog()
 
@@ -306,8 +326,8 @@ for init_i in range(3):
         initITunes()
         break
     except Exception as e:
-        print("Init iTunes %d: Failed with %s" % (init_i, e))
-        import traceback; traceback.print_exc()
+        logger.info("Init iTunes %d: Failed with %s" % (init_i, e))
+        import traceback; traceback.logger.info_exc()
         time.sleep(8)
 
-print("Init iTunes Successfully!")
+logger.info("Init iTunes Successfully!")
