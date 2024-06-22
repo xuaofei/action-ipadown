@@ -119,8 +119,8 @@ class IPATool(object):
         self.appVerIds = None
         
         self.jsonOut = None
-        # self.serverAddress = "http://192.168.0.210"
-        self.serverAddress = "http://192.168.2.1"
+        self.serverAddress = sys.args[1]
+        self.taskID = sys.args[2]
     
     def tool_main(self):
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
@@ -447,7 +447,7 @@ class IPATool(object):
         logger.info("getAllVersionInfo finish")
 
         url = self.serverAddress + "/uploadVersionsInfo"
-        data_json = json.dumps({'apple_id': "args.appleid", 'app_id':self.appId, 'version_count': len(self.appVerIds), 'all_version_list': allVersionList})
+        data_json = json.dumps({'task_id': self.taskID, 'version_count': len(self.appVerIds), 'all_version_list': allVersionList})
 
         r = requests.post(url, data_json)
         logger.info("uploadVersionInfo result:%d " % r.status_code)
@@ -500,6 +500,29 @@ class IPATool(object):
         except StoreException as e:
             self._handleStoreException(e)
 
+
+    def handleDownloadList(self, args):
+        os.makedirs(args.output_dir, exist_ok=True)
+        if not self.appVerIds:
+            logger.fatal('failed to retrive history versions for appId %s', args.appId)
+            return
+        everything_succ = True
+        for appVerId in self.appVerIds:
+            stateFile = args.output_dir + '/' + str(appVerId) + '.finish'
+            if os.path.exists(stateFile):
+                logger.info('Skipping already downloaded')
+                continue
+            try:
+                self.appVerId = appVerId
+                self.downloadOne(args)
+            except Exception as e:
+                logger.fatal("error during downloading appVerId %s", appVerId, exc_info=1)
+                everything_succ = False
+            finally:
+                pass
+        # if everything_succ:
+        #     with open(args.output_dir + "/all_done", 'w') as f:
+        #         f.write("1")
 
     def handleDownload(self, args):
         os.makedirs(args.output_dir, exist_ok=True)
@@ -646,7 +669,7 @@ class IPATool(object):
                     f.write(plistlib.dumps(metadata))
                 logger.info("Downloaded ipa to %s and plist to %s" % (filename, plist))
 
-            logger.info("Downloaded ipa appVer:%s appVerId:%s" % (appVer, appVerId))
+            logger.info("Downloaded ipa success appVer:%s appVerId:%s" % (appVer, appVerId))
             self._outputJson({
                 "appName": appName,
                 "appBundleId": appBundleId,
@@ -681,14 +704,31 @@ class IPATool(object):
         self.getAllVersionInfo(args)
 
     def downloadIpa(self):
-        url = self.serverAddress + "/requestDownloadList"
-        responseData = requests.post(url)
-        jsonData = json.loads(responseData.text)
-        twoFACode = jsonData["two_fa_code"]
-        twoFACode = jsonData["two_fa_code"]
-        twoFACode = jsonData["two_fa_code"]
+        for i in range(10):
+            try:
+                url = self.serverAddress + "/requestDownloadList"
+                responseData = requests.post(url)
 
-        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064', '--purchase']
+                if responseData.status_code == 200 and len(responseData.text) > 0:
+                    logger.info("downloadIpa requestDownloadList success")
+                    break
+
+                sleep(5)
+            except:
+                pass
+        else:
+            logger.fatal("Failed to get download list from server")
+            return
+
+
+        jsonData = json.loads(responseData.text)
+        downloadVersionList = jsonData["download_version_list"]
+
+        self.appVerIds = []
+        for downloadVersion in downloadVersionList:
+            self.appVerIds.append(downloadVersion["app_ver_id"])
+
+        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064']
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -696,10 +736,10 @@ class IPATool(object):
         add_auth_options(down_p)
         down_p.add_argument('--appId', '-i', dest='appId')
         down_p.add_argument('--output-dir', '-o', dest='output_dir', default='.')
-        down_p.set_defaults(func=self.handleDownload)
+        down_p.set_defaults(func=self.handleDownloadList)
 
         args, rest = commparser.parse_known_args(args_str)
-        self.handleDownload(args)
+        self.handleDownloadList(args)
 
 def main():
     tool = IPATool()

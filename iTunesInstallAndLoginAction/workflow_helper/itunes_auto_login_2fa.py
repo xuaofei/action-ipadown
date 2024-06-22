@@ -31,7 +31,8 @@ logger = logging.getLogger('main')
 
 
 logger.info("Launching iTunes...")
-webAddress = "http://175.10.91.86:7733"
+webAddress = sys.argv[1]
+taskId = sys.argv[2]
 
 def initITunes():
     subprocess.call('taskkill /f /im APSDaemon*', shell=True)
@@ -131,7 +132,7 @@ def initITunes():
     logger.info("Request login info from %s" % webAddress)
 
     # 请求用户名和密码
-    data_json = json.dumps({'task_id': sys.argv[1]})
+    data_json = json.dumps({'task_id': taskId})
     url = webAddress + '/scriptLoginInfoRequest'
     responseData = requests.post(url, data_json)
 

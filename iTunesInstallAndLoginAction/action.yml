@@ -55,7 +55,7 @@ runs:
         APPLEID_PWD: ${{ inputs.apple_id_pwd }}
       run: |
           echo Login iTunes...
-          python3 workflow_helper/itunes_auto_login_2fa.py ${{ env.TASK_ID }}
+          python3 workflow_helper/itunes_auto_login_2fa.py ${{ env.WEB_SERVER_ADDRESS }} ${{ env.TASK_ID }}
       working-directory: ${{ github.action_path }}
       shell: cmd
     
