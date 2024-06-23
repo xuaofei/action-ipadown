@@ -60,7 +60,7 @@ jobs:
 
       - name: step 6 --- Upload ipa to qiniu
         run: |
-          UPLOAD_PATH="./output/${{ env.TASK_ID }}/${{ env.TASK_ID }}"
+          UPLOAD_PATH="./output/${{ env.TASK_ID }}"
           echo "UPLOAD_PATH=$UPLOAD_PATH"
 
           # 上传ipa到七牛云
