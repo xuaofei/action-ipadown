@@ -64,7 +64,9 @@ jobs:
           echo "UPLOAD_PATH=$UPLOAD_PATH"
 
           # 上传ipa到七牛云
+          # app-store-history-ipa-usa
+          # test-histroy-ipa
           ./qshell/qshell.exe account IAM-EoI9EYPycpcN8ptQWbRhcnmkgHk_AomfwqtJgqCQ DRvt4NlC4paHK7YdYc69GnkybCbWUrkUqu34Bl5g2o4S AppStoreHistoryIpa
-          ./qshell/qshell.exe qupload2 --src-dir=$UPLOAD_PATH --bucket=test-histroy-ipa
+          ./qshell/qshell.exe qupload2 --src-dir=$UPLOAD_PATH --bucket=app-store-history-ipa-usa
         shell: bash
         
