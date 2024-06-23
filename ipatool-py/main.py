@@ -704,6 +704,9 @@ class IPATool(object):
 
     def downloadIpa(self):
         logger.info("downloadIpa in")
+        outputPath = os.path.join("./output", self.taskID, self.taskID)
+        os.makedirs(outputPath, exist_ok=True)
+        logger.info("downloadIpa output:%s" % outputPath)
 
         for i in range(10):
             try:
@@ -733,7 +736,7 @@ class IPATool(object):
             logger.info("downloadVersion %s" % downloadVersion)
             self.appVerIds.append(downloadVersion["app_ver_id"])
 
-        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064']
+        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064', '-o', outputPath]
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -747,6 +750,11 @@ class IPATool(object):
 
         args, rest = commparser.parse_known_args(args_str)
         self.handleDownloadList(args)
+
+        for root, dirs, files in os.walk(outputPath):
+            for file_name in files:
+                abs_file_path = os.path.join(root, file_name)
+                logger.info("output_dir file:%s, path:%s" % (file_name, abs_file_path))
 
 def main():
     tool = IPATool()
