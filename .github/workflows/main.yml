@@ -60,6 +60,11 @@ jobs:
 
       - name: step 6 --- Upload ipa to qiniu
         run: |
-          python3 ipatool-py/main.py ${{ env.WEB_SERVER_ADDRESS }} ${{ env.TASK_ID }}
+          UPLOAD_PATH="./output/${{ env.TASK_ID }}/${{ env.TASK_ID }}"
+          echo "UPLOAD_PATH=$UPLOAD_PATH"
+
+          # 上传ipa到七牛云
+          ./qshell/qshell.exe account IAM-EoI9EYPycpcN8ptQWbRhcnmkgHk_AomfwqtJgqCQ DRvt4NlC4paHK7YdYc69GnkybCbWUrkUqu34Bl5g2o4S AppStoreHistoryIpa
+          ./qshell/qshell.exe --src-dir=$UPLOAD_PATH --bucket=test-histroy-ipa
         shell: bash
         
