@@ -65,6 +65,6 @@ jobs:
 
           # 上传ipa到七牛云
           ./qshell/qshell.exe account IAM-EoI9EYPycpcN8ptQWbRhcnmkgHk_AomfwqtJgqCQ DRvt4NlC4paHK7YdYc69GnkybCbWUrkUqu34Bl5g2o4S AppStoreHistoryIpa
-          ./qshell/qshell.exe --src-dir=$UPLOAD_PATH --bucket=test-histroy-ipa
+          ./qshell/qshell.exe qupload2 --src-dir=$UPLOAD_PATH --bucket=test-histroy-ipa
         shell: bash
         
