@@ -47,7 +47,7 @@ def reportResult(code, msg):
     data_json = json.dumps({'task_id': taskId, "code": code, "msg": msg})
     url = webAddress + '/scriptReportResult'
     responseData = requests.post(url, data_json)
-    logger.info("reportResult result:%d " % responseData.status_code)
+    logger.info("reportResult status_code:%d " % responseData.status_code)
 
 
 def debugTopWin():
@@ -157,11 +157,15 @@ def loginItunes():
             url = webAddress + '/scriptLoginInfoRequest'
             responseData = requests.post(url, data_json)
 
-            logger.info("scriptLoginInfoRequest result:%d" % responseData.status_code)
-            if responseData.status_code != 200:
-                reportResult(error_code.REQ_LOGIN_INFO_ERR, "scriptLoginInfoRequest status_code:%d" % responseData.status_code)
-                time.sleep(5.0)
-                continue
+            logger.info("scriptLoginInfoRequest status_code:%d" % responseData.status_code)
+            if responseData.status_code == 200:
+                break
+
+            reportResult(error_code.REQ_LOGIN_INFO_ERR, "scriptLoginInfoRequest status_code:%d" % responseData.status_code)
+            logger.info("sleep 5s and retry")
+            time.sleep(5.0)
+            continue
+                
 
         # 判断内容是否和前面的一样，如果内容一样忽略登录
         new_login_info = True
@@ -217,6 +221,7 @@ def loginItunes():
         debugText = debugTopWin()
 
         if "Sign In to the iTunes Store" in debugText:
+            logger.info("Failed to trigger Login button!")
             reportResult(error_code.REQ_LOGIN_INFO_ERR,"没有点击登录按钮")
             raise Exception("Failed to trigger Login button!")
         elif app.top_window().window_text() == 'Verification Failed':
@@ -226,7 +231,9 @@ def loginItunes():
             cleanFailedDialog()
             time.sleep(15.0)
         else:
+            logger.info("login success")
             login_result = True
+            break
 
     if login_result == True:
         reportResult(error_code.REQ_LOGIN_INFO_SUCCESS, "")
@@ -279,6 +286,7 @@ def tfaItunes():
             logger.info("web 2FA is:%s" % twoFACode)
 
             if len(twoFACode) == 6:
+                logger.info("request web 2FA success")
                 break
 
             logger.info("not read 2FA from web, sleep 5s ,2FA len:%d" % len(twoFACode))
@@ -369,20 +377,23 @@ def tfaItunes():
         debugTopWin()
 
         if app.top_window().handle == dialogWrap.handle:
+            logger.info("Failed to trigger 2FA button!")
             reportResult(error_code.REQ_2FA_INFO_ERR,"没有点击2次认证按钮")
             raise Exception("Failed to trigger 2FA button!")
         elif app.top_window().window_text() == 'Verification Failed':
+            logger.info("login 2fa Verification Failed")
             reportResult(error_code.REQ_2FA_INFO_ERR, "二次验证码错误，请重新输入")
             # raise Exception("Verification Failed: %s" % app.top_window().Static2.window_text())
             cleanFailedDialog()
         else:
+            logger.info("login 2fa success")
             login_result = True
+            break
 
     if login_result == True:
         reportResult(error_code.REQ_2FA_INFO_SUCCESS, "")
     else:
         exit(error_code.REQ_2FA_INFO_ERR)
-
 
 
 def initITunes():
