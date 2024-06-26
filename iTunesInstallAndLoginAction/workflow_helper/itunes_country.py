@@ -22,9 +22,14 @@ def initITunes():
         topwin = app.top_window().wait('exists')
         texts = []
         texts += topwin.texts()
+        print("-- Cur top win: %s, texts: %s" % (topwin, topwin.texts()))
+        print("-- Cur top win: %s, window_text: %s" % (topwin, topwin.window_text()))
         for c in topwin.iter_children():
             texts += c.texts()
-        print("-- Cur top win: %s, texts: %s" % (topwin, texts))
+            print("-- Cur top win: %s, texts: %s" % (topwin, c.texts()))
+            print("-- Cur top win: %s, window_text: %s" % (topwin, c.window_text()))
+        print("-----------------------------------------------------------------")
+        # print("-- Cur top win: %s, texts: %s" % (topwin, texts))
         return "-- Cur top win: %s, texts: %s" % (topwin, texts)
 
     def cleanAllDialog():
@@ -42,15 +47,36 @@ def initITunes():
             app.wait_cpu_usage_lower(50)
             time.sleep(5)
 
+    def cleanFailedDialog():
+        while True:
+            topwin = app.top_window().wait('exists')
+            # dialogWrap = topwin.wait('ready')
+            # print("    friendly_class_name %s" % dialogWrap.friendly_class_name())
+            print("    class_name %s" % topwin.class_name())
+            print("    friendly_class_name %s" % topwin.friendly_class_name())
+            print("    window_text %s" % topwin.window_text())
+
+            if 'Dialog' in topwin.friendly_class_name() and 'Verification Failed' in topwin.window_text():
+                print("    Closing dialog %s" % topwin.window_text())
+                app.top_window().Button0.click()
+            else:
+                break
+
+            app.wait_cpu_usage_lower(50)
+            time.sleep(5)
+
     # Click all first-time dialogs (like License Agreements, missing audios)
     # cleanAllDialog()
 
     # Calm down a bit before main window operations
     app.wait_cpu_usage_lower(50)
 
-    for i in range(150):
+    for i in range(10):
         debugTopWin()
         time.sleep(3)
+
+    print("-------cleanFailedDialog------")
+    cleanFailedDialog()
 
 
 for init_i in range(3):

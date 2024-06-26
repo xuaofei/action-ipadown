@@ -74,6 +74,18 @@ def cleanAllDialog():
         app.wait_cpu_usage_lower(cpu_usage)
         time.sleep(5)
 
+def cleanFailedDialog():
+    while True:
+        topwin = app.top_window().wait('exists')
+        if 'Dialog' in topwin.friendly_class_name() and 'Verification Failed' in topwin.window_text():
+            print("    Closing dialog %s" % topwin.window_text())
+            app.top_window().Button0.click()
+        else:
+            break
+
+        app.wait_cpu_usage_lower(cpu_usage)
+        time.sleep(5)
+
 def cleanWelcomeDialog():
     # Click main window's first-time question ("No thanks" button)
     try:
@@ -211,6 +223,7 @@ def loginItunes():
             logger.info("login Verification Failed")
             reportResult(error_code.REQ_LOGIN_INFO_ERR,"登录失败，请检查账号密码")
             # raise Exception("Verification Failed: %s" % app.top_window().Static2.window_text())
+            cleanFailedDialog()
             time.sleep(15.0)
         else:
             login_result = True
@@ -361,6 +374,7 @@ def tfaItunes():
         elif app.top_window().window_text() == 'Verification Failed':
             reportResult(error_code.REQ_2FA_INFO_ERR, "二次验证码错误，请重新输入")
             # raise Exception("Verification Failed: %s" % app.top_window().Static2.window_text())
+            cleanFailedDialog()
         else:
             login_result = True
 
