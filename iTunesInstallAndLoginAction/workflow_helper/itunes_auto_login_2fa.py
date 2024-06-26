@@ -269,7 +269,7 @@ def tfaItunes():
     login_result = False
     login_info_list = []
     for i in range(3):
-        for k in range(6):
+        for k in range(12):
             time.sleep(5.0)
             logger.info("Start request 2FA from web index:%d" % k)
 
