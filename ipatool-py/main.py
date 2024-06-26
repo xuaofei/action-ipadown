@@ -447,7 +447,7 @@ class IPATool(object):
                 logger.fatal("error during downloading appVerId %s", appVerId, exc_info=1)
 
 
-        url = self.serverAddress + "/uploadVersionsInfo"
+        url = self.serverAddress + "/scriptUploadVersionsInfoRequest"
         data_json = json.dumps({'task_id': self.taskID, 'version_count': len(self.appVerIds), 'all_version_list': allVersionList})
 
         r = requests.post(url, data_json)

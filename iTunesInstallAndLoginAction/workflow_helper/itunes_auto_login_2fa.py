@@ -274,10 +274,10 @@ def tfaItunes():
             logger.info("Start request 2FA from web index:%d" % k)
 
             data_json = json.dumps({'task_id': taskId})
-            url = webAddress + '/request2FA'
+            url = webAddress + '/script2FARequest'
             responseData = requests.post(url, data_json)
 
-            logger.info("request2FA result:%d " % responseData.status_code)
+            logger.info("script2FARequest result:%d " % responseData.status_code)
             if responseData.status_code != 200:
                 continue
 
@@ -424,6 +424,8 @@ def initITunes():
     logger.info("Waiting all dialogs to finish")
     time.sleep(5)
     cleanAllDialog()
+    reportResult(error_code.REQ_LOGIN_SUCCESS, "")
+
 
 
 for init_i in range(3):
