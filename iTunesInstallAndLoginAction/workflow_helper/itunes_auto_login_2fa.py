@@ -269,6 +269,7 @@ def tfaItunes():
     login_result = False
     login_info_list = []
     for i in range(3):
+        logger.info("do 2FA login index:%d" % i)
         for k in range(12):
             time.sleep(5.0)
             logger.info("Start request 2FA from web index:%d" % k)
@@ -304,7 +305,7 @@ def tfaItunes():
         if new_login_info == True:
             login_info_list.append(responseData.text)
         else:
-            logger.info("not request new login info, ignore login")
+            logger.info("not request new 2FA info, ignore login 2FA")
             time.sleep(15.0)
             continue
 
@@ -393,7 +394,8 @@ def tfaItunes():
     if login_result == True:
         reportResult(error_code.REQ_2FA_INFO_SUCCESS, "")
     else:
-        exit(error_code.REQ_2FA_INFO_ERR)
+        raise Exception("login 2fa success Failed")
+        # exit(error_code.REQ_2FA_INFO_ERR)
 
 
 def initITunes():
