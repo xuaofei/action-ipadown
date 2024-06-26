@@ -119,6 +119,9 @@ qshell fput test-histroy-ipa qiniu.jpg /Users/jemy/Documents/qiniu.jpg
 qshell qupload2 --src-dir=C:\Users\xuaofei\Desktop\GitHub\action-ipadown\qshell\2024-12-12-123652-955 --bucket=test-histroy-ipa
 
 
+56视频
+431582558
+
 
 
 
