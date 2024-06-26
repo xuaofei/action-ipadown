@@ -35,6 +35,7 @@ logger.info("Launching iTunes...")
 webAddress = sys.argv[1]
 taskId = sys.argv[2]
 
+cpu_usage = 30
 app = None
 
 def reportResult(code, msg):
@@ -70,7 +71,7 @@ def cleanAllDialog():
         else:
             break
 
-        app.wait_cpu_usage_lower(10)
+        app.wait_cpu_usage_lower(cpu_usage)
         time.sleep(5)
 
 def cleanWelcomeDialog():
@@ -81,7 +82,7 @@ def cleanWelcomeDialog():
         if 'Search' not in buttonText:
             logger.info("Clicked 'No Thanks' Button!")
             app.iTunes.Button11.click_input()
-            app.wait_cpu_usage_lower(10)
+            app.wait_cpu_usage_lower(cpu_usage)
             time.sleep(4)
         else:
             raise Exception('stub')
@@ -93,7 +94,7 @@ def loginItunes():
     # Start logging in by clicking toolbar menu "Account"
     logger.info("Clicking Account menu...")
     app.iTunes.Application.Static3.click()
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
     time.sleep(3)
 
     debugTopWin()
@@ -108,7 +109,7 @@ def loginItunes():
     logger.info("Signin menu presented, clicking to login!")
     # not log in
     popup.menu().item(1).click_input()
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
     time.sleep(8)
     debugTopWin()
 
@@ -129,7 +130,7 @@ def loginItunes():
     else:
         reportResult(error_code.REQ_LOGIN_INFO_ERR,"没有找到登录窗口")
         raise Exception("Failed to find login window in 15 iterations!")
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
 
     logger.info("Request login info from %s" % webAddress)
 
@@ -235,7 +236,7 @@ def tfaItunes():
             logger.info("check 2FA auth sleep 3s")
             time.sleep(5.0)
 
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
 
     if need2FA == True:
         logger.info("need 2FA auth")
@@ -374,15 +375,16 @@ def initITunes():
     subprocess.call('taskkill /f /im APSDaemon*', shell=True)
     subprocess.call('taskkill /f /im iTunes*', shell=True)
 
+    global app
     app = Application().start(r"C:\Program Files\iTunes\iTunes.exe")
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
     time.sleep(8)
 
     # Click all first-time dialogs (like License Agreements, missing audios)
     cleanAllDialog()
 
     # Calm down a bit before main window operations
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
     debugTopWin()
 
     cleanWelcomeDialog()
@@ -391,7 +393,7 @@ def initITunes():
     time.sleep(5)
     tfaItunes()
     
-    app.wait_cpu_usage_lower(10)
+    app.wait_cpu_usage_lower(cpu_usage)
 
     # Finish & Cleanup
     logger.info("Waiting all dialogs to finish")
