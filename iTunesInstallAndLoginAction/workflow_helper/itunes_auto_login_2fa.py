@@ -444,7 +444,7 @@ for init_i in range(3):
         break
     except Exception as e:
         logger.info("Init iTunes %d: Failed with %s" % (init_i, e))
-        import traceback; traceback.info_exc()
+        import traceback; traceback.print_exc()
         time.sleep(8)
 
 logger.info("Init iTunes Successfully!")
