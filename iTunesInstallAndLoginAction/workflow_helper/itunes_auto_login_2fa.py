@@ -238,7 +238,8 @@ def loginItunes():
     if login_result == True:
         reportResult(error_code.REQ_LOGIN_INFO_SUCCESS, "")
     else:
-        exit(error_code.REQ_LOGIN_INFO_ERR)
+        raise Exception("login Failed")
+        # exit(error_code.REQ_LOGIN_INFO_ERR)
 
 
 def tfaItunes():
@@ -394,7 +395,7 @@ def tfaItunes():
     if login_result == True:
         reportResult(error_code.REQ_2FA_INFO_SUCCESS, "")
     else:
-        raise Exception("login 2fa success Failed")
+        raise Exception("login 2fa Failed")
         # exit(error_code.REQ_2FA_INFO_ERR)
 
 
