@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS历史应用下载</title>
+    <style>
+        #verifyForm {
+            display: none;
+            /* 初始状态隐藏 */
+        }
+
+        .app-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            /* 使 appItem 看起来可以点击 */
+            background-color: #f0f0f0;
+            /* 默认背景色 */
+            transition: background-color 0.3s;
+            /* 添加过渡效果 */
+        }
+
+        .app-item:hover,
+        .app-item.selected {
+            background-color: #d0d0d0;
+            /* 选中或悬停时的背景色 */
+        }
+
+        .app-image {
+            width: 60px;
+            height: 60px;
+            margin-right: 10px;
+        }
+
+        .app-details {
+            flex-grow: 1;
+        }
+
+        .scroll-container {
+            height: 600px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+    <script>
+        let pollingInterval;
+
+        function loginForm(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            const form = document.getElementById('loginForm');
+            const formData = new FormData(form);
+
+            fetch("/login", {
+                method: form.method,
+                body: new URLSearchParams(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('成功:', data);
+                    var taskId = getCookie('task_id');
+                    console.log('task_id:', taskId);
+
+                    const username = data.username;
+                    startLoginResultPolling(username);
+                })
+                .catch((error) => {
+                    console.error('错误:', error);
+                });
+        }
+
+        function startLoginResultPolling(username) {
+            pollingInterval = setInterval(() => {
+                fetch(`/loginResult?username=${username}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('登录结果:', data);
+
+
+                        if (data.status === "success") {
+                            document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
+                            clearInterval(pollingInterval);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('错误:', error);
+                    });
+            }, 2000); // 每2秒轮询一次
+        }
+
+        function submitVerify(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            const form = document.getElementById('verifyForm');
+            const formData = new FormData(form);
+
+            fetch("/verifyCode", {
+                method: form.method,
+                body: new URLSearchParams(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('验证结果:', data);
+                    const verifyCode = data.verifyCode;
+                    startVerifyResultPolling(verifyCode);
+                })
+                .catch((error) => {
+                    console.error('错误:', error);
+                });
+        }
+
+        function startVerifyResultPolling(verifyCode) {
+            pollingInterval = setInterval(() => {
+                fetch("/verifyCodeResult",
+                    {
+                        method: "POST"
+                    }
+                )
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('验证码结果:', data);
+                        if (data.code === 0) {
+                            clearInterval(pollingInterval);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('错误:', error);
+                    });
+            }, 2000); // 每2秒轮询一次
+        }
+
+        function submitSearch(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            const form = document.getElementById('searchForm');
+            const formData = new FormData(form);
+
+            fetch("/searchApp", {
+                method: form.method,
+                body: new URLSearchParams(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('showAppList 验证结果:', data);
+                    showAppList(data);
+                })
+                .catch((error) => {
+                    console.error('错误:', error);
+                });
+        }
+
+        function getCookie(name) {
+            var value = "; " + document.cookie;
+            var parts = value.split("; " + name + "=");
+            if (parts.length == 2) return parts.pop().split(";").shift();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) {
+                return bytes + ' B';
+            } else if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(2) + ' KB';
+            } else if (bytes < 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            } else {
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+            }
+        }
+
+        function startSearchAppVersionResultPolling() {
+            fetch('/searchAppVersionResult', {
+                method: 'POST',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Polling Result:', data);
+                    if (data.status === 'completed' || pollingCount >= maxPollingCount) {
+                        clearInterval(pollingInterval);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    clearInterval(pollingInterval);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('sendAppInfo').addEventListener('click', function () {
+                const selectedAppItem = document.querySelector('.app-item.selected');
+                if (selectedAppItem) {
+                    const appData = JSON.parse(selectedAppItem.dataset.appData);
+                    let pollingInterval;
+                    let pollingCount = 0;
+                    const maxPollingCount = 10; // 设置最大轮询次数
+
+
+                    fetch('/searchAppVersion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(appData)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Success:', data);
+
+                            // 启动轮询
+                            pollingInterval = setInterval(function () {
+                                pollingCount++;
+                                startSearchAppVersionResultPolling();
+                            }, 2000); // 每2秒轮询一次
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                } else {
+                    alert('请先选择一个应用');
+                }
+            });
+        });
+    </script>
+    <script>
+        function showAppList(data) {
+
+            // 获取显示区域
+            const appList = document.getElementById('app-list');
+            appList.innerHTML = ''; // 清空之前的列表
+
+            // 遍历 results 数组并创建 HTML 元素
+
+            data.results.forEach(app => {
+                const appItem = document.createElement('div');
+                appItem.className = 'app-item';
+
+                const appImage = document.createElement('img');
+                appImage.src = app.artworkUrl60;
+                appImage.alt = app.trackName;
+                appImage.className = 'app-image';
+
+                const appDetails = document.createElement('div');
+                appDetails.className = 'app-details';
+
+                const appName = document.createElement('h3');
+                appName.textContent = app.trackName;
+
+                const appDescription = document.createElement('p');
+                appDescription.textContent = app.description;
+
+                const appInfo = document.createElement('div');
+                appInfo.className = 'app-info';
+
+                const appVersion = document.createElement('span');
+                appVersion.textContent = `版本: ${app.version}`;
+
+                const appPrice = document.createElement('span');
+                appPrice.textContent = `价格: ${app.formattedPrice}`;
+
+                const appFileSize = document.createElement('span');
+                appFileSize.textContent = `文件大小: ${formatFileSize(parseInt(app.fileSizeBytes))}`;
+
+                const appSeller = document.createElement('span');
+                appSeller.textContent = `卖家: ${app.sellerName}`;
+
+                appInfo.appendChild(appVersion);
+                appInfo.appendChild(appPrice);
+                appInfo.appendChild(appFileSize);
+                appInfo.appendChild(appSeller);
+
+                appDetails.appendChild(appName);
+                //appDetails.appendChild(appDescription);
+                appDetails.appendChild(appInfo);
+
+                appItem.appendChild(appImage);
+                appItem.appendChild(appDetails);
+
+                // 设置 appData 数据
+                appItem.dataset.appData = JSON.stringify(app);
+
+                appItem.addEventListener('click', function () {
+                    // 移除所有 app-item 的 selected 类
+                    document.querySelectorAll('.app-item').forEach(item => item.classList.remove('selected'));
+                    // 为当前点击的 app-item 添加 selected 类
+                    this.classList.add('selected');
+                    const appData = JSON.parse(this.dataset.appData);
+                    document.getElementById('selectedAppName').value = appData.trackName;
+                    console.log(appData);
+                });
+
+                appList.appendChild(appItem);
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <h1>登录表单</h1>
+    <form id="loginForm" method="POST" onsubmit="loginForm(event)">
+        <label for="username">用户名:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">密码:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="登录">
+    </form>
+    <br>
+    <form id="verifyForm" method="POST" onsubmit="submitVerify(event)">
+        <label for="verifyCode">验证码:</label>
+        <input type="text" id="verifyCode" name="verifyCode" required>
+        <input type="submit" value="提交验证码">
+    </form>
+
+    <form id="searchForm" method="POST" onsubmit="submitSearch(event)">
+        <label for="verifyCode">搜索应用:</label>
+        <input type="text" id="appName" name="appName" required>
+        <input type="text" id="country" name="country" value="cn" required>
+        <input type="submit" value="应用名称">
+    </form>
+
+    <div class="scroll-container">
+        <div id="app-list"></div>
+    </div>
+    <input type="text" id="selectedAppName" placeholder="选中的应用名称" readonly>
+    <button id="sendAppInfo">查询应用版本信息</button>
+</body>
+
+</html>
