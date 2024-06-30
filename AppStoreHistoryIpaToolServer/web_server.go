@@ -1,18 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"time"
 )
 
-//func makeResponse(result int, msg string) map[string]any {
-//	return gin.H{
-//		"code":    result,
-//		"message": msg,
-//	}
-//}
+var loginStatus = map[string]string{}
+var verifyCodeStatus = map[string]string{}
 
 func webHomeHandler(c *gin.Context) {
 	log.Printf("webHomeHandler in")
@@ -31,41 +27,24 @@ func webLoginHandler(c *gin.Context) {
 
 	// 这里可以添加验证逻辑
 	if username == "" || password == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    FAILED,
-			"message": fmt.Sprintf("用户名和密码不能为空")})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "用户名或密码不能为空"})
 		return
 	}
 
-	taskId := makeTaskId()
-	err := GetDBInstance().InsertTask(taskId)
-	if err != nil {
-		// 返回JSON响应
-		c.JSON(http.StatusOK, gin.H{
-			"code":    FAILED,
-			"message": fmt.Sprintf("taksid make failed:%v", err),
-		})
-		return
-	}
+	go func() {
+		time.Sleep(5 * time.Second) // 模拟处理时间
+		loginStatus[username] = "success"
 
-	err = GetDBInstance().UpdateTaskLoginInfo(taskId, username, password)
-	if err != nil {
-		// 返回JSON响应
-		c.JSON(http.StatusOK, gin.H{
-			"code":    FAILED,
-			"message": fmt.Sprintf("Update Login failed:%v", err),
-		})
-		return
-	}
-	// 开启登录
-	GetSMInstance().StartTask()
+	}()
 
 	// 设置 cookie
-	c.SetCookie("task_id", taskId, 3600, "/", "", false, false)
+	c.SetCookie("task_id", makeTaskId(), 3600, "/", "", false, false)
+
 	// 返回JSON响应
 	c.JSON(http.StatusOK, gin.H{
-		"code":    SUCCESS,
-		"message": "",
+		"code":     0,
+		"message":  "",
+		"username": username,
 	})
 }
 
@@ -76,28 +55,20 @@ func webLoginResultHandler(c *gin.Context) {
 	task_id, err := c.Cookie("task_id")
 	if err != nil {
 		log.Printf("webLoginResultHandler not find cookie task_id, err:%v", err)
-		c.JSON(http.StatusOK, gin.H{
-			"code":    FAILED,
-			"message": fmt.Sprintf("query login status failed:%v", err),
-		})
 		return
 	}
 	log.Printf("webLoginResultHandler task_id:%v", task_id)
 
-	loginStatus, err := GetDBInstance().QueryTaskLoginStatus(task_id)
-	if err != nil {
+	username := c.Query("username")
+	if status, ok := loginStatus[username]; ok {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    FAILED,
-			"message": fmt.Sprintf("query login status failed:%v", err),
+			"status": status,
 		})
-		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"error": "用户不存在",
+		})
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"code":        SUCCESS,
-		"message":     "",
-		"loginStatus": loginStatus,
-	})
 }
 
 func webVerifyCodeHandler(c *gin.Context) {
@@ -112,6 +83,12 @@ func webVerifyCodeHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "验证码不能为空"})
 		return
 	}
+
+	//go func() {
+	//	time.Sleep(5 * time.Second) // 模拟处理时间
+	//	verifyCodeStatus[username] = "success"
+	//
+	//}()
 
 	// 返回JSON响应
 	c.JSON(http.StatusOK, gin.H{

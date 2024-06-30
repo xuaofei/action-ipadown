@@ -2,20 +2,6 @@ package main
 
 import "time"
 
-// web status
-const (
-	SUCCESS = 0
-	FAILED  = 1
-)
-
-// login status
-const (
-	UNLOGIN     = 0
-	LOGINING    = 1
-	LOGINED     = 2
-	LOGIN_ERROR = 3
-)
-
 // 请求任务
 type taskInfoRequest struct {
 	AppleID     string `json:"apple_id"`
@@ -35,7 +21,12 @@ type taskInfoResponse struct {
 
 // 请求二次验证码
 type twoFAInfoRequest struct {
-	TaskId string `json:"task_id"`
+	AppleID string `json:"apple_id"`
+	TaskID  string `json:"task_id"`
+}
+
+type twoFAInfoResponse struct {
+	TwoFACode string `json:"two_fa_code"`
 }
 
 // 上报ipa版本信息
@@ -85,7 +76,6 @@ type IPATaskDetail struct {
 
 	AppleID     string `json:"apple_id"`
 	ApplePwd    string `json:"apple_pwd"`
-	TwoFaCode   string `json:"two_fa_code"`
 	AppBundleID string `json:"app_bundle_id"`
 	AppID       string `json:"app_id"`
 	Country     string `json:"country"`

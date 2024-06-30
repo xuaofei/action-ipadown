@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,23 +44,9 @@
             border: 1px solid #ccc;
             padding: 10px;
         }
-
-        #error-banner {
-            display: none;
-            background-color: #ffcccc;
-            color: #cc0000;
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid #cc0000;
-        }
     </style>
     <script>
-        const LoginStatus = {
-            UNLOGIN: 0,
-            LOGINING: 1,
-            LOGINED: 2,
-            LOGIN_ERROR: 3
-        };
+        let pollingInterval;
 
         function loginForm(event) {
             event.preventDefault(); // 阻止表单默认提交行为
@@ -75,44 +60,35 @@
             })
                 .then(response => response.json())
                 .then(data => {
-
+                    console.log('成功:', data);
                     var taskId = getCookie('task_id');
                     console.log('task_id:', taskId);
 
-                    if (data.code == 0) {
-                        console.log('login请求成功');
-                        startLoginResultPolling();
-                    } else {
-                        console.log('登录失败:', data.msg);
-                        showErrorBanner(data.msg);
-                    }
+                    const username = data.username;
+                    startLoginResultPolling(username);
                 })
                 .catch((error) => {
                     console.error('错误:', error);
                 });
         }
 
-        function startLoginResultPolling() {
-            let pollingInterval = setInterval(() => {
-                fetch(`/loginResult`)
+        function startLoginResultPolling(username) {
+            pollingInterval = setInterval(() => {
+                fetch(`/loginResult?username=${username}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('查询的登录结果:', data);
+                        console.log('登录结果:', data);
 
-                        if (data.code == 0) {
-                            if (data.loginStatus == LoginStatus.LOGINED) {
-                                document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
-                                clearInterval(pollingInterval);
-                            } else if (data.code == LoginStatus.LOGIN_ERROR) {
-                                showErrorBanner(data.msg);
-                                clearInterval(pollingInterval);
-                            }
+
+                        if (data.status === "success") {
+                            document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
+                            clearInterval(pollingInterval);
                         }
                     })
                     .catch((error) => {
                         console.error('错误:', error);
                     });
-            }, 10000); // 每10秒轮询一次
+            }, 2000); // 每2秒轮询一次
         }
 
         function submitVerify(event) {
@@ -174,12 +150,6 @@
                 .catch((error) => {
                     console.error('错误:', error);
                 });
-        }
-
-        function showErrorBanner(message) {
-            const banner = document.getElementById('error-banner');
-            banner.textContent = message;
-            banner.style.display = 'block';
         }
 
         function getCookie(name) {
@@ -327,14 +297,13 @@
 </head>
 
 <body>
-    <div id="error-banner">错误信息</div>
     <h1>登录表单</h1>
     <form id="loginForm" method="POST" onsubmit="loginForm(event)">
         <label for="username">用户名:</label>
-        <input type="text" id="username" name="username" value="fsi2clsfiz8@163.com" required>
+        <input type="text" id="username" name="username" required>
         <br>
         <label for="password">密码:</label>
-        <input type="password" id="password" name="password" value="Ls112211" required>
+        <input type="password" id="password" name="password" required>
         <br>
         <input type="submit" value="登录">
     </form>

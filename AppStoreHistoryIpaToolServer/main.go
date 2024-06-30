@@ -9,13 +9,8 @@ import (
 )
 
 func runServer(c *cli.Context) error {
-	err := GetDBInstance().CreateTable()
-	if err != nil {
-		return err
-	}
-
-	startWebServer()
-	//startScriptServer()
+	go startWebServer()
+	startScriptServer()
 
 	return nil
 }
@@ -28,7 +23,6 @@ func startWebServer() {
 	router.LoadHTMLGlob("templates/*")
 	//router.LoadHTMLFiles("templates/template1.templates", "templates/template2.templates")
 
-	// web server
 	router.GET("/", webHomeHandler)                                          // 网站主页
 	router.POST("/login", webLoginHandler)                                   // appleid applepwd
 	router.GET("/loginResult", webLoginResultHandler)                        // 查询登录结果
@@ -38,22 +32,19 @@ func startWebServer() {
 	router.POST("/searchAppVersion", webSearchAppVersionHandler)             // 搜索应用版本号
 	router.POST("/searchAppVersionResult", webSearchAppVersionResultHandler) // 搜索应用版本号结果
 
-	// script server
-	router.GET("/scriptTaskIdRequest", scriptTaskIdHandler) // 网站主页
-	router.POST("/scriptLoginInfoRequest", scriptLoginInfoHandler)
-	router.POST("/script2FARequest", script2FAHandler)
-
-	router.POST("/scriptReportResult", scriptReportResultHandler)
-
-	_ = router.Run(":80")
+	_ = router.Run(":8080")
 }
 
 func startScriptServer() {
 	log.Printf("startScriptServer in")
 	defer log.Printf("startScriptServer out")
 
+	http.HandleFunc("/scriptTaskIdRequest", scriptTaskIdHandler)
+	http.HandleFunc("/scriptLoginInfoRequest", scriptLoginInfoHandler)
+	http.HandleFunc("/script2FARequest", script2FAHandler)
 	http.HandleFunc("/scriptUploadVersionsInfoRequest", scriptUploadVersionsInfoHandler)
 	http.HandleFunc("/scriptDownloadListRequest", scriptDownloadListHandler)
+	http.HandleFunc("/scriptReportResult", scriptReportResultHandler)
 
 	_ = http.ListenAndServe(":80", nil)
 }
