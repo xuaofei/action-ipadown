@@ -704,7 +704,7 @@ class IPATool(object):
 
     def downloadIpa(self):
         logger.info("downloadIpa in")
-        outputPath = os.path.join('.\output', self.taskID, self.taskID)
+        outputPath = os.path.join('./output', self.taskID, self.taskID)
         os.makedirs(outputPath, exist_ok=True)
         logger.info("downloadIpa output:%s" % outputPath)
 
