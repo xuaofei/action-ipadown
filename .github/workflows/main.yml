@@ -3,7 +3,7 @@ name: IPA Down
 
 env:
   PYTHONIOENCODING: utf-8
-  WEB_SERVER_ADDRESS: http://175.8.85.154:7733
+  WEB_SERVER_ADDRESS: http://175.10.91.185:8080
 
 # Allow Release
 permissions: write-all
