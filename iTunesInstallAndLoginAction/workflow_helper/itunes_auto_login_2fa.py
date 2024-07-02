@@ -53,9 +53,12 @@ def reportResult(code, msg):
 def debugTopWin():
     topwin = app.top_window().wait('exists')
     texts = []
+
+    texts += topwin.friendly_class_name()
     texts += topwin.texts()
     for c in topwin.iter_children():
         texts += c.texts()
+        texts += c.friendly_class_name()
     logger.info("-- Cur top win: %s, texts: %s" % (topwin, texts))
     return "-- Cur top win: %s, texts: %s" % (topwin, texts)
 
@@ -417,6 +420,7 @@ def initITunes():
 
     cleanWelcomeDialog()
 
+    # TODO:Already logged in!需要处理
     loginItunes()
     time.sleep(5)
     tfaItunes()
