@@ -71,12 +71,12 @@ def initITunes():
     # Calm down a bit before main window operations
     app.wait_cpu_usage_lower(50)
 
-    for i in range(10):
+    for i in range(100):
         debugTopWin()
         time.sleep(3)
 
     print("-------cleanFailedDialog------")
-    cleanFailedDialog()
+    # cleanFailedDialog()
 
 
 for init_i in range(3):

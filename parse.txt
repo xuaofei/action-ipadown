@@ -128,7 +128,10 @@ qshell qupload2 --src-dir=C:\Users\xuaofei\Desktop\GitHub\action-ipadown\qshell\
 
 
 
-
+Waiting login result...                             itunes_auto_login_2fa.py:219
+[15:24:49] INFO     -- Cur top win: hwndwrapper.DialogWrapper -          itunes_auto_login_2fa.py:59
+                    'iTunes', ATL:00007FF783C19510, texts: ['iTunes',                               
+                    '', 'Continue', 'Cancel', '', '', 'SPINNER']
 
 
 
