@@ -246,9 +246,9 @@ def loginItunes():
 def tfaItunes():
     logger.info("Check 2FA auth...")
     need2FA = False
-    for i in range(3):
+    for i in range(6):
         winText = debugTopWin()
-        if "Enter the verification code sent to your other devices." in winText:
+        if "Enter the verification code sent to your other devices." in winText or "SPINNER" in winText:
             logger.info("need 2FA auth")
             need2FA = True
             dialog = app.top_window()
