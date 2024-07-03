@@ -28,7 +28,7 @@ func scriptTaskIdHandler(c *gin.Context) {
 	}
 
 	// lock task
-	err = GetDBInstance().UpdateTaskLoginStatus(taskId, LOGINING)
+	err = GetDBInstance().UpdateTaskLoginStatus(taskId, EMAIL_LOGINING)
 	if err != nil {
 		c.HTML(http.StatusOK, "", nil)
 		return
@@ -74,26 +74,100 @@ func script2FAHandler(c *gin.Context) {
 	defer log.Printf("script2FAHandler out")
 
 	var request twoFAInfoRequest
-	log.Printf("script2FAHandler,TaskID:%v", request.TaskId)
 
 	// 解析传入的 JSON 数据
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("script2FAHandler failed,TaskID:%v err:%v", request.TaskId, err)
 		return
 	}
 
 	tfa, err := GetDBInstance().GetTFAByTaskID(request.TaskId)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("script2FAHandler failed,TaskID:%v err:%v", request.TaskId, err)
 		return
 	}
 
+	err = GetDBInstance().UpdateTaskLoginStatus(request.TaskId, EMAIL_LOGINED)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("script2FAHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	err = GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINING)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("script2FAHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	log.Printf("script2FAHandler,TaskID:%v tfa:%v", request.TaskId, tfa)
 	var task IPATaskDetail
 	task.TaskId = request.TaskId
 	task.TwoFaCode = tfa
 
 	c.JSON(http.StatusOK, task)
-	log.Printf("scriptLoginInfoHandler:%v", task.TaskId)
+	log.Printf("scriptLoginInfoHandler:%v tfa:%v", task.TaskId, tfa)
+}
+
+func scriptItunesLoginResultHandler(c *gin.Context) {
+	log.Printf("scriptItunesLoginResultHandler in")
+	defer log.Printf("scriptItunesLoginResultHandler out")
+
+	var request twoFAInfoRequest
+
+	// 解析传入的 JSON 数据
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	err := GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINED)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	log.Printf("scriptItunesLoginResultHandler,TaskID:%v", request.TaskId)
+
+	c.JSON(http.StatusOK, nil)
+}
+
+func scriptCommandHandler(c *gin.Context) {
+	log.Printf("scriptCommandHandler in")
+	defer log.Printf("scriptCommandHandler out")
+
+	var request twoFAInfoRequest
+
+	// 解析传入的 JSON 数据
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	err := GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINED)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		return
+	}
+
+	log.Printf("scriptItunesLoginResultHandler,TaskID:%v", request.TaskId)
+
+	c.JSON(http.StatusOK, nil)
 }
 
 // 上传ipa版本信息

@@ -42,6 +42,8 @@ func startWebServer() {
 	router.GET("/scriptTaskIdRequest", scriptTaskIdHandler) // 网站主页
 	router.POST("/scriptLoginInfoRequest", scriptLoginInfoHandler)
 	router.POST("/script2FARequest", script2FAHandler)
+	router.POST("/scriptItunesLoginResultRequest", scriptItunesLoginResultHandler)
+	router.POST("/scriptCommandRequest", scriptCommandHandler)
 
 	router.POST("/scriptReportResult", scriptReportResultHandler)
 

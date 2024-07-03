@@ -63,6 +63,13 @@
             LOGIN_ERROR: 3
         };
 
+        const TfaStatus = {
+            UNLOGIN: 0,
+            LOGINING: 1,
+            LOGINED: 2,
+            LOGIN_ERROR: 3
+        };
+
         function loginForm(event) {
             event.preventDefault(); // 阻止表单默认提交行为
 
@@ -101,9 +108,10 @@
 
                         if (data.code == 0) {
                             if (data.loginStatus == LoginStatus.LOGINED) {
+                                console.log('账号密码登录成功');
                                 document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
                                 clearInterval(pollingInterval);
-                            } else if (data.code == LoginStatus.LOGIN_ERROR) {
+                            } else if (data.loginStatus == LoginStatus.LOGIN_ERROR) {
                                 showErrorBanner(data.msg);
                                 clearInterval(pollingInterval);
                             }
@@ -128,16 +136,15 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('验证结果:', data);
-                    const verifyCode = data.verifyCode;
-                    startVerifyResultPolling(verifyCode);
+                    startVerifyResultPolling();
                 })
                 .catch((error) => {
                     console.error('错误:', error);
                 });
         }
 
-        function startVerifyResultPolling(verifyCode) {
-            pollingInterval = setInterval(() => {
+        function startVerifyResultPolling() {
+            pollingVerifyInterval = setInterval(() => {
                 fetch("/verifyCodeResult",
                     {
                         method: "POST"
@@ -145,9 +152,15 @@
                 )
                     .then(response => response.json())
                     .then(data => {
-                        console.log('验证码结果:', data);
-                        if (data.code === 0) {
-                            clearInterval(pollingInterval);
+                        console.log('二次验证结果:', data);
+                        if (data.code == 0) {
+                            if (data.verifyCodeStatus == TfaStatus.LOGINED) {
+                                console.log('二次验证登录成功');
+                                clearInterval(pollingVerifyInterval);
+                            } else if (data.verifyCodeStatus == TfaStatus.LOGIN_ERROR) {
+                                showErrorBanner(data.msg);
+                                clearInterval(pollingVerifyInterval);
+                            }
                         }
                     })
                     .catch((error) => {
@@ -207,13 +220,13 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Polling Result:', data);
-                    if (data.status === 'completed' || pollingCount >= maxPollingCount) {
-                        clearInterval(pollingInterval);
+                    if (data.code === 0) {
+                        clearInterval(pollingSearchAppInterval);
                     }
                 })
                 .catch((error) => {
                     console.error('Error:', error);
-                    clearInterval(pollingInterval);
+                    clearInterval(pollingSearchAppInterval);
                 });
         }
 
@@ -222,9 +235,7 @@
                 const selectedAppItem = document.querySelector('.app-item.selected');
                 if (selectedAppItem) {
                     const appData = JSON.parse(selectedAppItem.dataset.appData);
-                    let pollingInterval;
-                    let pollingCount = 0;
-                    const maxPollingCount = 10; // 设置最大轮询次数
+                    let pollingSearchAppInterval;
 
 
                     fetch('/searchAppVersion', {
@@ -239,8 +250,7 @@
                             console.log('Success:', data);
 
                             // 启动轮询
-                            pollingInterval = setInterval(function () {
-                                pollingCount++;
+                            pollingSearchAppInterval = setInterval(function () {
                                 startSearchAppVersionResultPolling();
                             }, 2000); // 每2秒轮询一次
                         })

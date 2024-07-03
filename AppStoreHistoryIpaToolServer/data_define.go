@@ -10,10 +10,18 @@ const (
 
 // login status
 const (
-	UNLOGIN     = 0
-	LOGINING    = 1
-	LOGINED     = 2
-	LOGIN_ERROR = 3
+	EMAIL_UNLOGIN    = 0
+	EMAIL_LOGINING   = 1
+	EMAIL_LOGINED    = 2
+	EMAIL_LOGINERROR = 3
+)
+
+// 2fa status
+const (
+	TFA_UNLOGIN     = 0
+	TFA_LOGINING    = 1
+	TFA_LOGINED     = 2
+	TFA_LOGIN_ERROR = 3
 )
 
 // 请求任务
@@ -116,7 +124,7 @@ type ITunesSearchAppResult struct {
 		ArtistId                           int           `json:"artistId"`
 		ArtistName                         string        `json:"artistName"`
 		Genres                             []string      `json:"genres"`
-		Price                              float64       `json:"price"`
+		Price                              float32       `json:"price"`
 		Description                        string        `json:"description"`
 		GenreIds                           []string      `json:"genreIds"`
 		ReleaseDate                        time.Time     `json:"releaseDate"`
@@ -150,7 +158,7 @@ type ITunesSearchAppResult struct {
 type AppData struct {
 	ArtworkUrl60   string  `json:"artworkUrl60"`
 	ReleaseNotes   string  `json:"releaseNotes"`
-	Price          float64 `json:"price"`
+	Price          float32 `json:"price"`
 	Description    string  `json:"description"`
 	BundleId       string  `json:"bundleId"`
 	SellerName     string  `json:"sellerName"`

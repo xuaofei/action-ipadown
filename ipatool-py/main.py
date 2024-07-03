@@ -756,11 +756,40 @@ class IPATool(object):
                 abs_file_path = os.path.join(root, file_name)
                 logger.info("output_dir file:%s, path:%s" % (file_name, abs_file_path))
 
+def requestCommand():
+    logger.info("requestCommand in")
+
+    url = self.serverAddress + "/scriptCommandRequest"
+    data_json = json.dumps({'task_id': self.taskID})
+    responseData = requests.post(url, data_json)
+
+    if responseData.status_code != 200:
+        logger.info("requestCommand failed status_code:%d" % responseData.status_code)
+        return None
+
+    jsonData = json.loads(responseData.text)
+    command = jsonData["command"]
+    return command
+
 def main():
     tool = IPATool()
     # tool.tool_main()
-    tool.uploadAllVersionInfo()
-    tool.downloadIpa()
+
+    while True:
+        try:
+            command = requestCommand()
+            if command == "uploadAllVersionInfo":
+                tool.uploadAllVersionInfo()
+                continue
+            elif command == "downloadIpa":
+                tool.downloadIpa()
+                continue
+            
+            break
+        except Exception as e:
+            logger.fatal("requestCommand failed", exc_info=1)
+
+        time.sleep(5)
 
 
 if __name__ == '__main__':

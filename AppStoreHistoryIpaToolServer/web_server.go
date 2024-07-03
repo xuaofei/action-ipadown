@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 //func makeResponse(result int, msg string) map[string]any {
@@ -74,7 +75,7 @@ func webLoginResultHandler(c *gin.Context) {
 	defer log.Printf("webLoginResultHandler out")
 
 	task_id, err := c.Cookie("task_id")
-	if err != nil {
+	if err != nil || len(task_id) == 0 {
 		log.Printf("webLoginResultHandler not find cookie task_id, err:%v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
@@ -104,18 +105,40 @@ func webVerifyCodeHandler(c *gin.Context) {
 	log.Printf("webVerifyCodeHandler in")
 	defer log.Printf("webVerifyCodeHandler out")
 
+	task_id, err := c.Cookie("task_id")
+	if err != nil || len(task_id) == 0 {
+		log.Printf("webVerifyCodeHandler not find cookie task_id, err:%v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("webVerifyCodeHandler failed:%v", err),
+		})
+		return
+	}
+	log.Printf("webVerifyCodeHandler task_id:%v", task_id)
+
 	// 获取表单数据
 	verifyCode := c.PostForm("verifyCode")
-
 	// 这里可以添加验证逻辑
 	if verifyCode == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "验证码不能为空"})
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("verifyCode is empty"),
+		})
+		return
+	}
+
+	err = GetDBInstance().UpdateTask2FA(task_id, verifyCode)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("webVerifyCodeHandler failed:%v", err),
+		})
 		return
 	}
 
 	// 返回JSON响应
 	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
+		"code":    SUCCESS,
 		"message": "",
 	})
 }
@@ -124,12 +147,30 @@ func webVerifyCodeResultHandler(c *gin.Context) {
 	log.Printf("webVerifyCodeResultHandler in")
 	defer log.Printf("webVerifyCodeResultHandler out")
 
-	//time.Sleep(6 * time.Second)
+	task_id, err := c.Cookie("task_id")
+	if err != nil || len(task_id) == 0 {
+		log.Printf("webVerifyCodeResultHandler not find cookie task_id, err:%v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("query VerifyCode status failed:%v", err),
+		})
+		return
+	}
+	log.Printf("webVerifyCodeResultHandler task_id:%v", task_id)
 
-	// 返回JSON响应
+	verifyCodeStatus, err := GetDBInstance().QueryTaskVerifyCodeStatus(task_id)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("query verifyCodeStatus failed:%v", err),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
-		"message": "",
+		"code":             SUCCESS,
+		"message":          "",
+		"verifyCodeStatus": verifyCodeStatus,
 	})
 }
 
@@ -171,8 +212,29 @@ func webSearchAppVersionHandler(c *gin.Context) {
 		return
 	}
 
+	task_id, err := c.Cookie("task_id")
+	if err != nil || len(task_id) == 0 {
+		log.Printf("webSearchAppVersionHandler not find cookie task_id, err:%v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("query SearchAppVersion status failed:%v", err),
+		})
+		return
+	}
+	log.Printf("webVerifyCodeResultHandler task_id:%v", task_id)
+
+	err = GetDBInstance().UpdateTaskDownloadIpaInfo(task_id, strconv.Itoa(appData.TrackId), appData.Price)
+	if err != nil {
+		log.Printf("webSearchAppVersionHandler UpdateTaskDownloadIpaInfo, err:%v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("UpdateTaskDownloadIpaInfo failed:%v", err),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
+		"code":    SUCCESS,
 		"message": "",
 	})
 }
@@ -181,8 +243,31 @@ func webSearchAppVersionResultHandler(c *gin.Context) {
 	log.Printf("webSearchAppVersionResultHandler in")
 	defer log.Printf("webSearchAppVersionResultHandler out")
 
-	// 处理 appData 数据
-	// 这里可以添加你的业务逻辑
+	task_id, err := c.Cookie("task_id")
+	if err != nil || len(task_id) == 0 {
+		log.Printf("webSearchAppVersionResultHandler not find cookie task_id, err:%v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("query AppVersion failed:%v", err),
+		})
+		return
+	}
+	log.Printf("webSearchAppVersionResultHandler task_id:%v", task_id)
+
+	verifyCodeStatus, err := GetDBInstance().QueryTaskVerifyCodeStatus(task_id)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    FAILED,
+			"message": fmt.Sprintf("query verifyCodeStatus failed:%v", err),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":             SUCCESS,
+		"message":          "",
+		"verifyCodeStatus": verifyCodeStatus,
+	})
 
 	// 返回成功响应
 	c.JSON(http.StatusOK, gin.H{

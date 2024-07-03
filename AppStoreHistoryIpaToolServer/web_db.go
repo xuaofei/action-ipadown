@@ -41,10 +41,11 @@ func (d *Database) CreateTable() error {
 		apple_id TEXT,
 		password TEXT,
 		login_status INTEGER DEFAULT 0,
-		tfa TEXT,
+		tfa TEXT DEFAULT "",
 		tfa_status INTEGER DEFAULT 0,
-		ipa_boundid TEXT,
-		appie TEXT,
+		app_boundid TEXT,
+		app_id TEXT,
+		price REAL DEFAULT 0,
 		all_version TEXT,
 		download_version TEXT,
 		duration INTEGER,
@@ -134,6 +135,36 @@ func (d *Database) UpdateTask2FA(taskID, tfa string) error {
 	return nil
 }
 
+func (d *Database) UpdateTask2FAStatus(taskID string, tfaStatus int) error {
+	log.Printf("UpdateTaskLoginStatus Taskid:%v, tfaStatus:%v", taskID, tfaStatus)
+
+	updateSQL := `UPDATE tasks SET tfa_status = ? WHERE task_id = ?;`
+
+	_, err := d.db.Exec(updateSQL, tfaStatus, taskID)
+	if err != nil {
+		log.Printf("UpdateTask2FAStatus db failed:%v", err)
+		return err
+	}
+
+	log.Printf("UpdateTask2FAStatus inserted successfully")
+	return nil
+}
+
+func (d *Database) UpdateTaskDownloadIpaInfo(taskID string, appid string, price float32) error {
+	log.Printf("UpdateTaskDownloadIpaInfo Taskid:%v, appid:%v, price:%v", taskID, appid, price)
+
+	updateSQL := `UPDATE tasks SET app_id = ?, price = ? WHERE task_id = ?;`
+
+	_, err := d.db.Exec(updateSQL, appid, price, taskID)
+	if err != nil {
+		log.Printf("UpdateTaskDownloadIpaInfo db failed:%v", err)
+		return err
+	}
+
+	log.Printf("UpdateTaskDownloadIpaInfo inserted successfully")
+	return nil
+}
+
 // QueryTask
 func (d *Database) QueryNotStartedTask() (string, error) {
 	querySQL := `SELECT task_id FROM tasks WHERE login_status = 0 LIMIT 1;`
@@ -163,7 +194,7 @@ func (d *Database) QueryTaskLoginStatus(taskID string) (int, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Printf("No task found with taskID: %v", taskID)
-			return 0, nil
+			return 0, fmt.Errorf("no task found with taskID: %v", taskID)
 		}
 		log.Printf("QueryTaskLoginStatus db failed:%v", err)
 		return 0, err
@@ -171,6 +202,26 @@ func (d *Database) QueryTaskLoginStatus(taskID string) (int, error) {
 
 	log.Printf("Task login status queried successfully:Taskid:%v loginStatus:%v", taskID, loginStatus)
 	return loginStatus, nil
+}
+
+func (d *Database) QueryTaskVerifyCodeStatus(taskID string) (int, error) {
+	log.Printf("QueryTaskVerifyCodeStatus Taskid:%v", taskID)
+
+	querySQL := `SELECT tfa_status FROM tasks WHERE task_id = ?;`
+
+	var verifyCodeStatus int
+	err := d.db.QueryRow(querySQL, taskID).Scan(&verifyCodeStatus)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("No task found with taskID: %v", taskID)
+			return 0, fmt.Errorf("no task found with taskID: %v", taskID)
+		}
+		log.Printf("QueryTaskVerifyCodeStatus db failed:%v", err)
+		return 0, err
+	}
+
+	log.Printf("Task VerifyCode queried successfully:Taskid:%v verifyCodeStatus:%v", taskID, verifyCodeStatus)
+	return verifyCodeStatus, nil
 }
 
 // Get
