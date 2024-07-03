@@ -297,6 +297,7 @@ def tfaItunes():
             reportResult(error_code.REQ_2FA_INFO_ERR, "not read 2FA in 60s")
             raise Exception("not read 2FA in 60s")
 
+        
         # 判断内容是否和前面的一样，如果内容一样忽略登录
         new_login_info = True
         for item in login_info_list:
@@ -395,6 +396,10 @@ def tfaItunes():
 
     if login_result == True:
         reportResult(error_code.REQ_2FA_INFO_SUCCESS, "")
+
+        data_json = json.dumps({'task_id': taskId})
+        url = webAddress + '/scriptItunesLoginResultRequest'
+        responseData = requests.post(url, data_json)
     else:
         raise Exception("login 2fa Failed")
         # exit(error_code.REQ_2FA_INFO_ERR)
