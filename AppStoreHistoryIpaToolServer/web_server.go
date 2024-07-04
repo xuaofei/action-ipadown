@@ -49,7 +49,7 @@ func webLoginHandler(c *gin.Context) {
 		return
 	}
 
-	err = GetDBInstance().UpdateTaskLoginInfo(taskId, username, password)
+	err = GetDBInstance().UpdateAppleIDAndPassword(taskId, username, password)
 	if err != nil {
 		// 返回JSON响应
 		c.JSON(http.StatusOK, gin.H{
@@ -85,7 +85,7 @@ func webLoginResultHandler(c *gin.Context) {
 	}
 	log.Printf("webLoginResultHandler task_id:%v", task_id)
 
-	loginStatus, err := GetDBInstance().QueryTaskLoginStatus(task_id)
+	loginStatus, err := GetDBInstance().QueryLoginStatus(task_id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
@@ -127,7 +127,7 @@ func webVerifyCodeHandler(c *gin.Context) {
 		return
 	}
 
-	err = GetDBInstance().UpdateTask2FA(task_id, verifyCode)
+	err = GetDBInstance().Update2FA(task_id, verifyCode)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
@@ -158,7 +158,7 @@ func webVerifyCodeResultHandler(c *gin.Context) {
 	}
 	log.Printf("webVerifyCodeResultHandler task_id:%v", task_id)
 
-	verifyCodeStatus, err := GetDBInstance().QueryTaskVerifyCodeStatus(task_id)
+	verifyCodeStatus, err := GetDBInstance().QueryVerifyCodeStatus(task_id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
@@ -223,12 +223,12 @@ func webSearchAppVersionHandler(c *gin.Context) {
 	}
 	log.Printf("webVerifyCodeResultHandler task_id:%v", task_id)
 
-	err = GetDBInstance().UpdateTaskDownloadIpaInfo(task_id, strconv.Itoa(appData.TrackId), appData.Price)
+	err = GetDBInstance().UpdateDownloadIpaInfo(task_id, strconv.Itoa(appData.TrackId), appData.Price)
 	if err != nil {
-		log.Printf("webSearchAppVersionHandler UpdateTaskDownloadIpaInfo, err:%v", err)
+		log.Printf("webSearchAppVersionHandler UpdateDownloadIpaInfo, err:%v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
-			"message": fmt.Sprintf("UpdateTaskDownloadIpaInfo failed:%v", err),
+			"message": fmt.Sprintf("UpdateDownloadIpaInfo failed:%v", err),
 		})
 		return
 	}
@@ -254,7 +254,7 @@ func webSearchAppVersionResultHandler(c *gin.Context) {
 	}
 	log.Printf("webSearchAppVersionResultHandler task_id:%v", task_id)
 
-	verifyCodeStatus, err := GetDBInstance().QueryTaskVerifyCodeStatus(task_id)
+	verifyCodeStatus, err := GetDBInstance().QueryVerifyCodeStatus(task_id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,

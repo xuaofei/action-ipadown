@@ -90,78 +90,78 @@ func (d *Database) InsertTask(taskID string) error {
 }
 
 // UpdateTask
-func (d *Database) UpdateTaskLoginInfo(taskID, appleID, password string) error {
-	log.Printf("UpdateTaskLoginInfo Taskid:%v, appleID:%v, password len:%d", taskID, appleID, len(password))
+func (d *Database) UpdateAppleIDAndPassword(taskID, appleID, password string) error {
+	log.Printf("UpdateAppleIDAndPassword Taskid:%v, appleID:%v, password len:%d", taskID, appleID, len(password))
 
 	updateSQL := `UPDATE tasks SET apple_id = ?, password = ? WHERE task_id = ?;`
 
 	_, err := d.db.Exec(updateSQL, appleID, password, taskID)
 	if err != nil {
-		log.Printf("UpdateTaskLoginInfo db failed:%v", err)
+		log.Printf("UpdateAppleIDAndPassword db failed:%v", err)
 		return err
 	}
 
-	log.Printf("UpdateTaskLoginInfo inserted successfully")
+	log.Printf("UpdateAppleIDAndPassword inserted successfully")
 	return nil
 }
 
-func (d *Database) UpdateTaskLoginStatus(taskID string, loginStatus int) error {
-	log.Printf("UpdateTaskLoginStatus Taskid:%v, loginStatus:%v", taskID, loginStatus)
+func (d *Database) UpdateLoginStatus(taskID string, loginStatus int) error {
+	log.Printf("UpdateLoginStatus Taskid:%v, loginStatus:%v", taskID, loginStatus)
 
 	updateSQL := `UPDATE tasks SET login_status = ? WHERE task_id = ?;`
 
 	_, err := d.db.Exec(updateSQL, loginStatus, taskID)
 	if err != nil {
-		log.Printf("UpdateTaskLoginStatus db failed:%v", err)
+		log.Printf("UpdateLoginStatus db failed:%v", err)
 		return err
 	}
 
-	log.Printf("UpdateTaskLoginStatus inserted successfully")
+	log.Printf("UpdateLoginStatus inserted successfully")
 	return nil
 }
 
-func (d *Database) UpdateTask2FA(taskID, tfa string) error {
-	log.Printf("UpdateTask2FA Taskid:%v, tfa:%v", taskID, tfa)
+func (d *Database) Update2FA(taskID, tfa string) error {
+	log.Printf("Update2FA Taskid:%v, tfa:%v", taskID, tfa)
 
 	updateSQL := `UPDATE tasks SET tfa = ? WHERE task_id = ?;`
 
 	_, err := d.db.Exec(updateSQL, tfa, taskID)
 	if err != nil {
-		log.Printf("UpdateTask2FA db failed:%v", err)
+		log.Printf("Update2FA db failed:%v", err)
 		return err
 	}
 
-	log.Printf("UpdateTask2FA inserted successfully")
+	log.Printf("Update2FA inserted successfully")
 	return nil
 }
 
-func (d *Database) UpdateTask2FAStatus(taskID string, tfaStatus int) error {
-	log.Printf("UpdateTaskLoginStatus Taskid:%v, tfaStatus:%v", taskID, tfaStatus)
+func (d *Database) Update2FAStatus(taskID string, tfaStatus int) error {
+	log.Printf("UpdateLoginStatus Taskid:%v, tfaStatus:%v", taskID, tfaStatus)
 
 	updateSQL := `UPDATE tasks SET tfa_status = ? WHERE task_id = ?;`
 
 	_, err := d.db.Exec(updateSQL, tfaStatus, taskID)
 	if err != nil {
-		log.Printf("UpdateTask2FAStatus db failed:%v", err)
+		log.Printf("Update2FAStatus db failed:%v", err)
 		return err
 	}
 
-	log.Printf("UpdateTask2FAStatus inserted successfully")
+	log.Printf("Update2FAStatus inserted successfully")
 	return nil
 }
 
-func (d *Database) UpdateTaskDownloadIpaInfo(taskID string, appid string, price float32) error {
-	log.Printf("UpdateTaskDownloadIpaInfo Taskid:%v, appid:%v, price:%v", taskID, appid, price)
+func (d *Database) UpdateDownloadIpaInfo(taskID string, appid string, price float32) error {
+	log.Printf("UpdateDownloadIpaInfo Taskid:%v, appid:%v, price:%v", taskID, appid, price)
 
 	updateSQL := `UPDATE tasks SET app_id = ?, price = ? WHERE task_id = ?;`
 
 	_, err := d.db.Exec(updateSQL, appid, price, taskID)
 	if err != nil {
-		log.Printf("UpdateTaskDownloadIpaInfo db failed:%v", err)
+		log.Printf("UpdateDownloadIpaInfo db failed:%v", err)
 		return err
 	}
 
-	log.Printf("UpdateTaskDownloadIpaInfo inserted successfully")
+	log.Printf("UpdateDownloadIpaInfo inserted successfully")
 	return nil
 }
 
@@ -184,8 +184,8 @@ func (d *Database) QueryNotStartedTask() (string, error) {
 	return taskID, nil
 }
 
-func (d *Database) QueryTaskLoginStatus(taskID string) (int, error) {
-	log.Printf("QueryTaskLoginStatus Taskid:%v", taskID)
+func (d *Database) QueryLoginStatus(taskID string) (int, error) {
+	log.Printf("QueryLoginStatus Taskid:%v", taskID)
 
 	querySQL := `SELECT login_status FROM tasks WHERE task_id = ?;`
 
@@ -196,7 +196,7 @@ func (d *Database) QueryTaskLoginStatus(taskID string) (int, error) {
 			log.Printf("No task found with taskID: %v", taskID)
 			return 0, fmt.Errorf("no task found with taskID: %v", taskID)
 		}
-		log.Printf("QueryTaskLoginStatus db failed:%v", err)
+		log.Printf("QueryLoginStatus db failed:%v", err)
 		return 0, err
 	}
 
@@ -204,8 +204,8 @@ func (d *Database) QueryTaskLoginStatus(taskID string) (int, error) {
 	return loginStatus, nil
 }
 
-func (d *Database) QueryTaskVerifyCodeStatus(taskID string) (int, error) {
-	log.Printf("QueryTaskVerifyCodeStatus Taskid:%v", taskID)
+func (d *Database) QueryVerifyCodeStatus(taskID string) (int, error) {
+	log.Printf("QueryVerifyCodeStatus Taskid:%v", taskID)
 
 	querySQL := `SELECT tfa_status FROM tasks WHERE task_id = ?;`
 
@@ -216,7 +216,7 @@ func (d *Database) QueryTaskVerifyCodeStatus(taskID string) (int, error) {
 			log.Printf("No task found with taskID: %v", taskID)
 			return 0, fmt.Errorf("no task found with taskID: %v", taskID)
 		}
-		log.Printf("QueryTaskVerifyCodeStatus db failed:%v", err)
+		log.Printf("QueryVerifyCodeStatus db failed:%v", err)
 		return 0, err
 	}
 
@@ -224,8 +224,7 @@ func (d *Database) QueryTaskVerifyCodeStatus(taskID string) (int, error) {
 	return verifyCodeStatus, nil
 }
 
-// Get
-func (d *Database) GetTFAByTaskID(taskID string) (string, error) {
+func (d *Database) Query2FA(taskID string) (string, error) {
 	querySQL := `SELECT tfa FROM tasks WHERE task_id = ?;`
 
 	var tfa string
@@ -235,7 +234,7 @@ func (d *Database) GetTFAByTaskID(taskID string) (string, error) {
 			log.Printf("No task found with taskID: %v", taskID)
 			return "", nil
 		}
-		log.Printf("GetTFAByTaskID db failed:%v", err)
+		log.Printf("Query2FA db failed:%v", err)
 		return "", err
 	}
 
@@ -243,7 +242,7 @@ func (d *Database) GetTFAByTaskID(taskID string) (string, error) {
 	return tfa, nil
 }
 
-func (d *Database) GetAppleIDAndPasswordByTaskID(taskID string) (string, string, error) {
+func (d *Database) QueryAppleIDAndPassword(taskID string) (string, string, error) {
 	querySQL := `SELECT apple_id, password FROM tasks WHERE task_id = ?;`
 
 	var appleID, password string
@@ -253,7 +252,7 @@ func (d *Database) GetAppleIDAndPasswordByTaskID(taskID string) (string, string,
 			log.Printf("No task found with taskID: %v", taskID)
 			return "", "", fmt.Errorf("no task found with taskID: %v", taskID)
 		}
-		log.Printf("GetAppleIDAndPasswordByTaskID db failed:%v", err)
+		log.Printf("QueryAppleIDAndPassword db failed:%v", err)
 		return "", "", err
 	}
 

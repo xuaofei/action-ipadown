@@ -28,7 +28,7 @@ func scriptTaskIdHandler(c *gin.Context) {
 	}
 
 	// lock task
-	err = GetDBInstance().UpdateTaskLoginStatus(taskId, EMAIL_LOGINING)
+	err = GetDBInstance().UpdateLoginStatus(taskId, EMAIL_LOGINING)
 	if err != nil {
 		c.HTML(http.StatusOK, "", nil)
 		return
@@ -54,7 +54,7 @@ func scriptLoginInfoHandler(c *gin.Context) {
 		return
 	}
 
-	appleId, pwd, err := GetDBInstance().GetAppleIDAndPasswordByTaskID(request.TaskId)
+	appleId, pwd, err := GetDBInstance().QueryAppleIDAndPassword(request.TaskId)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 		return
@@ -73,7 +73,7 @@ func script2FAHandler(c *gin.Context) {
 	log.Printf("script2FAHandler in")
 	defer log.Printf("script2FAHandler out")
 
-	var request twoFAInfoRequest
+	var request scriptCommomRequest
 
 	// 解析传入的 JSON 数据
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -83,7 +83,7 @@ func script2FAHandler(c *gin.Context) {
 		return
 	}
 
-	tfa, err := GetDBInstance().GetTFAByTaskID(request.TaskId)
+	tfa, err := GetDBInstance().Query2FA(request.TaskId)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
@@ -91,7 +91,7 @@ func script2FAHandler(c *gin.Context) {
 		return
 	}
 
-	err = GetDBInstance().UpdateTaskLoginStatus(request.TaskId, EMAIL_LOGINED)
+	err = GetDBInstance().UpdateLoginStatus(request.TaskId, EMAIL_LOGINED)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
@@ -99,7 +99,7 @@ func script2FAHandler(c *gin.Context) {
 		return
 	}
 
-	err = GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINING)
+	err = GetDBInstance().Update2FAStatus(request.TaskId, TFA_LOGINING)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
@@ -120,7 +120,7 @@ func scriptItunesLoginResultHandler(c *gin.Context) {
 	log.Printf("scriptItunesLoginResultHandler in")
 	defer log.Printf("scriptItunesLoginResultHandler out")
 
-	var request twoFAInfoRequest
+	var request scriptCommomRequest
 
 	// 解析传入的 JSON 数据
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -130,7 +130,7 @@ func scriptItunesLoginResultHandler(c *gin.Context) {
 		return
 	}
 
-	err := GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINED)
+	err := GetDBInstance().Update2FAStatus(request.TaskId, TFA_LOGINED)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
@@ -147,7 +147,7 @@ func scriptCommandHandler(c *gin.Context) {
 	log.Printf("scriptCommandHandler in")
 	defer log.Printf("scriptCommandHandler out")
 
-	var request twoFAInfoRequest
+	var request scriptCommomRequest
 
 	// 解析传入的 JSON 数据
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -157,7 +157,7 @@ func scriptCommandHandler(c *gin.Context) {
 		return
 	}
 
-	err := GetDBInstance().UpdateTask2FAStatus(request.TaskId, TFA_LOGINED)
+	err := GetDBInstance().Update2FAStatus(request.TaskId, TFA_LOGINED)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 

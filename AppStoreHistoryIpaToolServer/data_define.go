@@ -42,7 +42,7 @@ type taskInfoResponse struct {
 }
 
 // 请求二次验证码
-type twoFAInfoRequest struct {
+type scriptCommomRequest struct {
 	TaskId string `json:"task_id"`
 }
 
