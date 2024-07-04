@@ -153,21 +153,42 @@ func scriptCommandHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
-		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		log.Printf("scriptCommandHandler failed,TaskID:%v err:%v", request.TaskId, err)
 		return
 	}
 
-	err := GetDBInstance().Update2FAStatus(request.TaskId, TFA_LOGINED)
+	allVersion, err := GetDBInstance().QueryAllVersion(request.TaskId)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 
-		log.Printf("scriptItunesLoginResultHandler failed,TaskID:%v err:%v", request.TaskId, err)
+		log.Printf("scriptCommandHandler failed,TaskID:%v err:%v", request.TaskId, err)
 		return
 	}
 
-	log.Printf("scriptItunesLoginResultHandler,TaskID:%v", request.TaskId)
+	command := ""
+	appId := ""
+	if len(allVersion) == 0 {
+		// free app
+		command = "uploadAllVersionInfo"
 
-	c.JSON(http.StatusOK, nil)
+		appId, err = GetDBInstance().QueryAppId(request.TaskId)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+
+			log.Printf("scriptCommandHandler failed,TaskID:%v err:%v", request.TaskId, err)
+			return
+		}
+	} else {
+		command = "downloadIpa"
+	}
+
+	var response scriptCommonResponse
+	response.Command = command
+	response.AppId = appId
+
+	log.Printf("scriptCommandHandler,TaskID:%v", request.TaskId)
+
+	c.JSON(http.StatusOK, response)
 }
 
 // 上传ipa版本信息

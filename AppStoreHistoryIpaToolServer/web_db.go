@@ -259,3 +259,93 @@ func (d *Database) QueryAppleIDAndPassword(taskID string) (string, string, error
 	log.Printf("Task found with taskID %v: apple_id=%v, password=%v", taskID, appleID, password)
 	return appleID, password, nil
 }
+
+func (d *Database) QueryPrice(taskID string) (float32, error) {
+	querySQL := `SELECT price FROM tasks WHERE task_id = ?;`
+
+	var price float32
+	err := d.db.QueryRow(querySQL, taskID).Scan(&price)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("No task found with taskID: %v", taskID)
+			return price, fmt.Errorf("no task found with taskID: %v", taskID)
+		}
+		log.Printf("QueryAppleIDAndPassword db failed:%v", err)
+		return price, err
+	}
+
+	log.Printf("Task found with taskID %v: price=%v", taskID, price)
+	return price, nil
+}
+
+func (d *Database) QueryAppId(taskID string) (string, error) {
+	querySQL := `SELECT app_id FROM tasks WHERE task_id = ?;`
+
+	var app_id string
+	err := d.db.QueryRow(querySQL, taskID).Scan(&app_id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("No task found with taskID: %v", taskID)
+			return "", fmt.Errorf("no task found with taskID: %v", taskID)
+		}
+		log.Printf("QueryAllVersion db failed:%v", err)
+		return "", err
+	}
+
+	log.Printf("QueryAllVersion taskID %v: app_id=%v", taskID, app_id)
+	return app_id, nil
+}
+
+func (d *Database) QueryAllVersion(taskID string) (string, error) {
+	querySQL := `SELECT all_version FROM tasks WHERE task_id = ?;`
+
+	var all_version string
+	err := d.db.QueryRow(querySQL, taskID).Scan(&all_version)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("No task found with taskID: %v", taskID)
+			return "", fmt.Errorf("no task found with taskID: %v", taskID)
+		}
+		log.Printf("QueryAllVersion db failed:%v", err)
+		return "", err
+	}
+
+	log.Printf("QueryAllVersion taskID %v: QueryAllVersion=%v", taskID, all_version)
+	return all_version, nil
+}
+
+func (d *Database) QueryTaskData(taskID string) (*Task, error) {
+	var task Task
+	query := `SELECT id, task_id, apple_id, password, login_status, tfa, tfa_status, app_boundid, app_id, price, all_version, download_version, duration, save_directory, start_time, completed FROM tasks WHERE task_id = ?`
+
+	err := d.db.QueryRow(query, taskID).Scan(
+		&task.ID,
+		&task.TaskID,
+		&task.AppleID,
+		&task.Password,
+		&task.LoginStatus,
+		&task.TFA,
+		&task.TFAStatus,
+		&task.AppBoundID,
+		&task.AppID,
+		&task.Price,
+		&task.AllVersion,
+		&task.DownloadVersion,
+		&task.Duration,
+		&task.SaveDirectory,
+		&task.StartTime,
+		&task.Completed,
+	)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("No task found with taskID: %v", taskID)
+			return nil, fmt.Errorf("no task found with taskID: %v", taskID)
+		}
+		log.Printf("QueryTaskData db failed: %v", err)
+		return nil, err
+	}
+
+	log.Printf("QueryTaskData taskID %v: Task=%+v", taskID, task)
+	return &task, nil
+}

@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 // web status
 const (
@@ -33,17 +35,20 @@ type taskInfoRequest struct {
 	TaskID      string `json:"task_id"`
 }
 
-type taskInfoResponse struct {
-	AppleID     string `json:"apple_id"`
-	ApplePwd    string `json:"apple_pwd"`
-	AppBundleID string `json:"app_bundle_id"`
-	Country     string `json:"country"`
-	TaskID      string `json:"task_id"`
-}
-
 // 请求二次验证码
 type scriptCommomRequest struct {
 	TaskId string `json:"task_id"`
+}
+
+type scriptCommonResponse struct {
+	AppleID     string `json:"apple_id"`
+	ApplePwd    string `json:"apple_pwd"`
+	AppBundleID string `json:"app_bundle_id"`
+	AppId       string `json:"app_id"`
+	Country     string `json:"country"`
+	TaskID      string `json:"task_id"`
+	Command     string `json:"command"`
+	AllVersion  string `json:"all_version"`
 }
 
 // 上报ipa版本信息
@@ -173,4 +178,23 @@ type AppData struct {
 type WebSearchAppResult struct {
 	ResultCount int       `json:"resultCount"`
 	Results     []AppData `json:"results"`
+}
+
+type Task struct {
+	ID              int     `json:"id"`
+	TaskID          string  `json:"task_id"`
+	AppleID         string  `json:"apple_id"`
+	Password        string  `json:"password"`
+	LoginStatus     int     `json:"login_status"`
+	TFA             string  `json:"tfa"`
+	TFAStatus       int     `json:"tfa_status"`
+	AppBoundID      string  `json:"app_boundid"`
+	AppID           string  `json:"app_id"`
+	Price           float64 `json:"price"`
+	AllVersion      string  `json:"all_version"`
+	DownloadVersion string  `json:"download_version"`
+	Duration        int     `json:"duration"`
+	SaveDirectory   string  `json:"save_directory"`
+	StartTime       string  `json:"start_time"`
+	Completed       int     `json:"completed"`
 }

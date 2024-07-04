@@ -684,8 +684,10 @@ class IPATool(object):
             self._handleStoreException(e)
 
 
-    def uploadAllVersionInfo(self):
-        args_str = ['getAllVersionInfo', '-s', 'http://127.0.0.1:9000', '--appId', '583376064', '--purchase']
+    def uploadAllVersionInfo(self, jsonData):
+        appid = jsonData["app_id"]
+
+        args_str = ['getAllVersionInfo', '-s', 'http://127.0.0.1:9000', '--appId', appid, '--purchase']
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -769,7 +771,7 @@ def requestCommand():
 
     jsonData = json.loads(responseData.text)
     command = jsonData["command"]
-    return command
+    return command, jsonData
 
 def main():
     tool = IPATool()
@@ -777,12 +779,14 @@ def main():
 
     while True:
         try:
-            command = requestCommand()
+            command, jsonData = requestCommand()
+            logger.info("requestCommand command:%s" % command)
+
             if command == "uploadAllVersionInfo":
-                tool.uploadAllVersionInfo()
+                tool.uploadAllVersionInfo(jsonData)
                 continue
             elif command == "downloadIpa":
-                tool.downloadIpa()
+                tool.downloadIpa(jsonData)
                 continue
             
             break

@@ -35,7 +35,7 @@ func startWebServer() {
 	router.POST("/verifyCode", webVerifyCodeHandler)                         // 输入二次验证码
 	router.POST("/verifyCodeResult", webVerifyCodeResultHandler)             // 查询二次验证码登录结果
 	router.POST("/searchApp", webSearchAppHandler)                           // 搜索应用
-	router.POST("/searchAppVersion", webSearchAppVersionHandler)             // 搜索应用版本号
+	router.POST("/selectApp", webSelectAppHandler)                           // 搜索应用版本号
 	router.POST("/searchAppVersionResult", webSearchAppVersionResultHandler) // 搜索应用版本号结果
 
 	// script server

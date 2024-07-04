@@ -200,9 +200,9 @@ func webSearchAppHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, webSearchAppResult)
 }
 
-func webSearchAppVersionHandler(c *gin.Context) {
-	log.Printf("webSearchAppVersionHandler in")
-	defer log.Printf("webSearchAppVersionHandler out")
+func webSelectAppHandler(c *gin.Context) {
+	log.Printf("webSelectAppHandler in")
+	defer log.Printf("webSelectAppHandler out")
 
 	var appData AppData
 
@@ -214,18 +214,18 @@ func webSearchAppVersionHandler(c *gin.Context) {
 
 	task_id, err := c.Cookie("task_id")
 	if err != nil || len(task_id) == 0 {
-		log.Printf("webSearchAppVersionHandler not find cookie task_id, err:%v", err)
+		log.Printf("webSelectAppHandler not find cookie task_id, err:%v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
 			"message": fmt.Sprintf("query SearchAppVersion status failed:%v", err),
 		})
 		return
 	}
-	log.Printf("webVerifyCodeResultHandler task_id:%v", task_id)
+	log.Printf("webSelectAppHandler task_id:%v", task_id)
 
 	err = GetDBInstance().UpdateDownloadIpaInfo(task_id, strconv.Itoa(appData.TrackId), appData.Price)
 	if err != nil {
-		log.Printf("webSearchAppVersionHandler UpdateDownloadIpaInfo, err:%v", err)
+		log.Printf("webSelectAppHandler UpdateDownloadIpaInfo, err:%v", err)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    FAILED,
 			"message": fmt.Sprintf("UpdateDownloadIpaInfo failed:%v", err),
