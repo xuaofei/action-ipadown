@@ -250,6 +250,7 @@ class IPATool(object):
         newSess = pickle.loads(pickle.dumps(self.sess))
         Store = StoreClient(newSess)
 
+        args.itunes_server = None
         if args.itunes_server:
             logger.info("Using iTunes interface %s to download app!" % args.itunes_server)
             servUrl = args.itunes_server
