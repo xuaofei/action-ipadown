@@ -685,9 +685,9 @@ class IPATool(object):
 
 
     def uploadAllVersionInfo(self, jsonData):
-        appid = jsonData["app_id"]
+        # appid = jsonData["app_id"]
 
-        args_str = ['getAllVersionInfo', '-s', 'http://127.0.0.1:9000', '--appId', appid, '--purchase']
+        args_str = ['getAllVersionInfo', '--appId', '583376064', '--purchase']
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -698,13 +698,12 @@ class IPATool(object):
         getVer_p.add_argument('--appleid', '-e')
         getVer_p.add_argument('--password', '-p')
         getVer_p.add_argument('--session-dir', dest='session_dir', default=None)
-        getVer_p.add_argument('--itunes-server', '-s', dest='itunes_server')
         getVer_p.set_defaults(func=self.getAllVersionInfo)
 
         args, rest = commparser.parse_known_args(args_str)
         self.getAllVersionInfo(args)
 
-    def downloadIpa(self):
+    def downloadIpa(self, jsonData):
         logger.info("downloadIpa in")
         outputPath = os.path.join('./output', self.taskID, self.taskID)
         os.makedirs(outputPath, exist_ok=True)
@@ -738,7 +737,7 @@ class IPATool(object):
             logger.info("downloadVersion %s" % downloadVersion)
             self.appVerIds.append(downloadVersion["app_ver_id"])
 
-        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064', '-o', outputPath]
+        args_str = ['download', '--appId', '583376064', '-o', outputPath]
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -777,23 +776,26 @@ def main():
     tool = IPATool()
     # tool.tool_main()
 
-    while True:
-        try:
-            command, jsonData = requestCommand()
-            logger.info("requestCommand command:%s" % command)
+    tool.uploadAllVersionInfo(None)
+    tool.downloadIpa(None)
 
-            if command == "uploadAllVersionInfo":
-                tool.uploadAllVersionInfo(jsonData)
-                continue
-            elif command == "downloadIpa":
-                tool.downloadIpa(jsonData)
-                continue
+    # while True:
+    #     try:
+    #         command, jsonData = requestCommand()
+    #         logger.info("requestCommand command:%s" % command)
+
+    #         if command == "uploadAllVersionInfo":
+    #             tool.uploadAllVersionInfo(jsonData)
+    #             continue
+    #         elif command == "downloadIpa":
+    #             tool.downloadIpa(jsonData)
+    #             continue
             
-            break
-        except Exception as e:
-            logger.fatal("requestCommand failed", exc_info=1)
+    #         break
+    #     except Exception as e:
+    #         logger.fatal("requestCommand failed", exc_info=1)
 
-        time.sleep(5)
+    #     time.sleep(5)
 
 
 if __name__ == '__main__':

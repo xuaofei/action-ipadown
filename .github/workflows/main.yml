@@ -3,7 +3,7 @@ name: IPA Down
 
 env:
   PYTHONIOENCODING: utf-8
-  WEB_SERVER_ADDRESS: http://175.10.90.110:7733
+  WEB_SERVER_ADDRESS: http://175.8.87.10:7733
 
 # Allow Release
 permissions: write-all
@@ -49,8 +49,8 @@ jobs:
       #     path: test\*
 
         # 安装iTunes和登录iTunes
-      - name: step 4 --- Setup iTunes Header Service
-        uses: ./iTunesInstallAndLoginAction
+      # - name: step 4 --- Setup iTunes Header Service
+      #   uses: ./iTunesInstallAndLoginAction
 
 
       - name: step 5 --- Start Python Task
