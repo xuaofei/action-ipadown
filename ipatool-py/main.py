@@ -688,7 +688,7 @@ class IPATool(object):
     def uploadAllVersionInfo(self, jsonData):
         # appid = jsonData["app_id"]
 
-        args_str = ['getAllVersionInfo', '--appId', '583376064', '-e' , 'fsi2clsfiz8@163.com', '-p', 'Ls112211']
+        args_str = ['getAllVersionInfo', '-i', '583376064', '-e' , 'fsi2clsfiz8@163.com', '-p', 'Ls112211']
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
