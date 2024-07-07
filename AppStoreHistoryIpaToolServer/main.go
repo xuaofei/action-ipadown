@@ -37,15 +37,21 @@ func startWebServer() {
 	router.POST("/searchApp", webSearchAppHandler)                           // 搜索应用
 	router.POST("/selectApp", webSelectAppHandler)                           // 搜索应用版本号
 	router.POST("/searchAppVersionResult", webSearchAppVersionResultHandler) // 搜索应用版本号结果
+	router.POST("/selectAppAppVersion", webSelectAppAppVersionHandler)       // 搜索应用版本号结果
+
+	router.POST("/taskInfo", webTaskInfoHandler)
 
 	// script server
-	router.GET("/scriptTaskIdRequest", scriptTaskIdHandler) // 网站主页
+	router.POST("/scriptTaskIdRequest", scriptTaskIdHandler) // 网站主页
 	router.POST("/scriptLoginInfoRequest", scriptLoginInfoHandler)
 	router.POST("/script2FARequest", script2FAHandler)
 	router.POST("/scriptItunesLoginResultRequest", scriptItunesLoginResultHandler)
 	router.POST("/scriptCommandRequest", scriptCommandHandler)
-
 	router.POST("/scriptReportResult", scriptReportResultHandler)
+
+	router.POST("/scriptTaskInfoRequest", scriptTaskInfoHandler)
+	router.POST("/scriptLoginResultRequest", scriptLoginResultHandler)
+	router.POST("/scriptUploadAllVersionRequest", scriptUploadAllVersionHandler)
 
 	_ = router.Run(":80")
 }
@@ -60,8 +66,28 @@ func startScriptServer() {
 	_ = http.ListenAndServe(":80", nil)
 }
 
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
 	log.Printf("args:%v", os.Args)
+
+	dbPath := "./appstore.db"
+	if exist, _ := PathExists(dbPath); exist {
+		if err := os.Remove(dbPath); err != nil {
+			log.Printf("删除文件 %s 失败: %v", dbPath, err)
+		} else {
+			log.Printf("文件 %s 已删除", dbPath)
+		}
+	}
 
 	app := &cli.App{
 		Name:   "AppStoreHistoryIpaTool",

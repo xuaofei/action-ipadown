@@ -38,19 +38,20 @@ func (d *Database) CreateTable() error {
 	CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		task_id TEXT NOT NULL,
-		apple_id TEXT,
-		password TEXT,
+		apple_id TEXT DEFAULT "",
+		password TEXT DEFAULT "",
 		login_status INTEGER DEFAULT 0,
 		tfa TEXT DEFAULT "",
 		tfa_status INTEGER DEFAULT 0,
-		app_boundid TEXT,
-		app_id TEXT,
+		app_boundid TEXT DEFAULT "",
+		app_id TEXT DEFAULT "",
 		price REAL DEFAULT 0,
-		all_version TEXT,
-		download_version TEXT,
-		duration INTEGER,
-		save_directory TEXT,
-		start_time TEXT,
+		all_version TEXT DEFAULT "",
+		download_version TEXT DEFAULT "",
+		duration INTEGER DEFAULT 0,
+		save_directory TEXT DEFAULT "",
+		start_time TEXT DEFAULT "",
+		task_status INTEGER DEFAULT 0,
 		completed INTEGER DEFAULT 0
 	);`
 
@@ -105,20 +106,20 @@ func (d *Database) UpdateAppleIDAndPassword(taskID, appleID, password string) er
 	return nil
 }
 
-func (d *Database) UpdateLoginStatus(taskID string, loginStatus int) error {
-	log.Printf("UpdateLoginStatus Taskid:%v, loginStatus:%v", taskID, loginStatus)
-
-	updateSQL := `UPDATE tasks SET login_status = ? WHERE task_id = ?;`
-
-	_, err := d.db.Exec(updateSQL, loginStatus, taskID)
-	if err != nil {
-		log.Printf("UpdateLoginStatus db failed:%v", err)
-		return err
-	}
-
-	log.Printf("UpdateLoginStatus inserted successfully")
-	return nil
-}
+//func (d *Database) UpdateLoginStatus(taskID string, loginStatus int) error {
+//	log.Printf("UpdateLoginStatus Taskid:%v, loginStatus:%v", taskID, loginStatus)
+//
+//	updateSQL := `UPDATE tasks SET login_status = ? WHERE task_id = ?;`
+//
+//	_, err := d.db.Exec(updateSQL, loginStatus, taskID)
+//	if err != nil {
+//		log.Printf("UpdateLoginStatus db failed:%v", err)
+//		return err
+//	}
+//
+//	log.Printf("UpdateLoginStatus inserted successfully")
+//	return nil
+//}
 
 func (d *Database) Update2FA(taskID, tfa string) error {
 	log.Printf("Update2FA Taskid:%v, tfa:%v", taskID, tfa)
@@ -165,9 +166,54 @@ func (d *Database) UpdateDownloadIpaInfo(taskID string, appid string, price floa
 	return nil
 }
 
+func (d *Database) UpdateAllVersion(taskID string, allVersion string) error {
+	log.Printf("UpdateAllVersion Taskid:%v, allVersion:%v", taskID, allVersion)
+
+	updateSQL := `UPDATE tasks SET all_version = ? WHERE task_id = ?;`
+
+	_, err := d.db.Exec(updateSQL, allVersion, taskID)
+	if err != nil {
+		log.Printf("UpdateAllVersion db failed:%v", err)
+		return err
+	}
+
+	log.Printf("UpdateAllVersion inserted successfully")
+	return nil
+}
+
+func (d *Database) UpdateDownloadVersion(taskID string, downloadVersion string) error {
+	log.Printf("UpdateAllVersion Taskid:%v, downloadVersion:%v", taskID, downloadVersion)
+
+	updateSQL := `UPDATE tasks SET download_version = ? WHERE task_id = ?;`
+
+	_, err := d.db.Exec(updateSQL, downloadVersion, taskID)
+	if err != nil {
+		log.Printf("UpdateDownloadVersion db failed:%v", err)
+		return err
+	}
+
+	log.Printf("UpdateDownloadVersion inserted successfully")
+	return nil
+}
+
+func (d *Database) UpdateTaskStatus(taskID string, status int) error {
+	log.Printf("UpdateAllVersion Taskid:%v, status:%v", taskID, status)
+
+	updateSQL := `UPDATE tasks SET task_status = ? WHERE task_id = ?;`
+
+	_, err := d.db.Exec(updateSQL, status, taskID)
+	if err != nil {
+		log.Printf("UpdateTaskStatus db failed:%v", err)
+		return err
+	}
+
+	log.Printf("UpdateTaskStatus inserted successfully")
+	return nil
+}
+
 // QueryTask
 func (d *Database) QueryNotStartedTask() (string, error) {
-	querySQL := `SELECT task_id FROM tasks WHERE login_status = 0 LIMIT 1;`
+	querySQL := `SELECT task_id FROM tasks WHERE task_status = 1 LIMIT 1;`
 
 	var taskID string
 	err := d.db.QueryRow(querySQL).Scan(&taskID)
@@ -316,7 +362,7 @@ func (d *Database) QueryAllVersion(taskID string) (string, error) {
 
 func (d *Database) QueryTaskData(taskID string) (*Task, error) {
 	var task Task
-	query := `SELECT id, task_id, apple_id, password, login_status, tfa, tfa_status, app_boundid, app_id, price, all_version, download_version, duration, save_directory, start_time, completed FROM tasks WHERE task_id = ?`
+	query := `SELECT id, task_id, apple_id, password, login_status, tfa, tfa_status, app_boundid, app_id, price, all_version, download_version, duration, save_directory, start_time, task_status, completed FROM tasks WHERE task_id = ?`
 
 	err := d.db.QueryRow(query, taskID).Scan(
 		&task.ID,
@@ -334,9 +380,10 @@ func (d *Database) QueryTaskData(taskID string) (*Task, error) {
 		&task.Duration,
 		&task.SaveDirectory,
 		&task.StartTime,
+		&task.TaskStatus,
 		&task.Completed,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No task found with taskID: %v", taskID)

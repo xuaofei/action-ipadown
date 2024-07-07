@@ -146,4 +146,17 @@ python ipatool-py-scrape-master/main.py download -i 414478124 --appVerId 8650721
 
 python main.py historyver -i 414478124 -e fsi2clsfiz8@163.com -p Ls112211
 
-python3 main.py --json download -i 414478124 --downloadAllVersion -e fsi2clsfiz8@163.com -p Ls112211
+python main.py download -i 414478124 --downloadAllVersion -e fsi2clsfiz8@163.com -p Ls112211
+
+python ipatool-py-scrape-master/main.py getAllVersionInfo -i 414478124 -e fsi2clsfiz8@163.com -p Ls112211
+
+
+getAllVersionInfo
+
+
+mima cuowu
+Store authenticate failed! Message: MZFinance.BadLogin.Configurator_message                                                                                                       main.py:321
+           CRITICAL     Raw Response: {'pings': [], 'failureType': '', 'customerMessage': 'MZFinance.BadLogin.Configurator_message', 'm-allowed': False, 'cancel-purchase-batch': True}
+		   
+		   
+		  web 
