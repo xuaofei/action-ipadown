@@ -12,7 +12,7 @@
     "salableAdamId": {
       "type": "string"
     },
-    "externalVersionId": {
+    "appExtVrsId": {
       "type": "string"
     }
   },

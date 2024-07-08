@@ -250,7 +250,6 @@ class IPATool(object):
         newSess = pickle.loads(pickle.dumps(self.sess))
         Store = StoreClient(newSess)
 
-        args.itunes_server = None
         if args.itunes_server:
             logger.info("Using iTunes interface %s to download app!" % args.itunes_server)
             servUrl = args.itunes_server
@@ -686,9 +685,9 @@ class IPATool(object):
 
 
     def uploadAllVersionInfo(self, jsonData):
-        # appid = jsonData["app_id"]
+        appid = jsonData["app_id"]
 
-        args_str = ['getAllVersionInfo', '-i', '583376064', '-e' , 'fsi2clsfiz8@163.com', '-p', 'Ls112211']
+        args_str = ['getAllVersionInfo', '-s', 'http://127.0.0.1:9000', '--appId', appid, '--purchase']
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -699,12 +698,13 @@ class IPATool(object):
         getVer_p.add_argument('--appleid', '-e')
         getVer_p.add_argument('--password', '-p')
         getVer_p.add_argument('--session-dir', dest='session_dir', default=None)
+        getVer_p.add_argument('--itunes-server', '-s', dest='itunes_server')
         getVer_p.set_defaults(func=self.getAllVersionInfo)
 
         args, rest = commparser.parse_known_args(args_str)
         self.getAllVersionInfo(args)
 
-    def downloadIpa(self, jsonData):
+    def downloadIpa(self):
         logger.info("downloadIpa in")
         outputPath = os.path.join('./output', self.taskID, self.taskID)
         os.makedirs(outputPath, exist_ok=True)
@@ -738,7 +738,7 @@ class IPATool(object):
             logger.info("downloadVersion %s" % downloadVersion)
             self.appVerIds.append(downloadVersion["app_ver_id"])
 
-        args_str = ['download', '--appId', '583376064', '-o', outputPath, '-e' , 'fsi2clsfiz8@163.com', '-p', 'Ls112211']
+        args_str = ['download', '-s', 'http://127.0.0.1:9000', '--appId', '583376064', '-o', outputPath]
         commparser = argparse.ArgumentParser(description='IPATool-Python Commands.', add_help=False)
         subp = commparser.add_subparsers(dest='command', required=True)
 
@@ -777,26 +777,23 @@ def main():
     tool = IPATool()
     # tool.tool_main()
 
-    tool.uploadAllVersionInfo(None)
-    tool.downloadIpa(None)
+    while True:
+        try:
+            command, jsonData = requestCommand()
+            logger.info("requestCommand command:%s" % command)
 
-    # while True:
-    #     try:
-    #         command, jsonData = requestCommand()
-    #         logger.info("requestCommand command:%s" % command)
-
-    #         if command == "uploadAllVersionInfo":
-    #             tool.uploadAllVersionInfo(jsonData)
-    #             continue
-    #         elif command == "downloadIpa":
-    #             tool.downloadIpa(jsonData)
-    #             continue
+            if command == "uploadAllVersionInfo":
+                tool.uploadAllVersionInfo(jsonData)
+                continue
+            elif command == "downloadIpa":
+                tool.downloadIpa(jsonData)
+                continue
             
-    #         break
-    #     except Exception as e:
-    #         logger.fatal("requestCommand failed", exc_info=1)
+            break
+        except Exception as e:
+            logger.fatal("requestCommand failed", exc_info=1)
 
-    #     time.sleep(5)
+        time.sleep(5)
 
 
 if __name__ == '__main__':

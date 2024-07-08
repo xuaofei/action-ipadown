@@ -7,7 +7,7 @@
     <title>iOS历史应用下载</title>
     <style>
         #verifyForm {
-            display: block;
+            display: none;
             /* 初始状态隐藏 */
         }
 
@@ -40,7 +40,7 @@
         }
 
         .scroll-container {
-            height: 300px;
+            height: 600px;
             overflow-y: scroll;
             border: 1px solid #ccc;
             padding: 10px;
@@ -54,97 +54,21 @@
             text-align: center;
             border-bottom: 1px solid #cc0000;
         }
-
-        .version-list {
-            height: 300px;
-            width: 1000px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        .version-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            cursor: pointer;
-            padding: 5px;
-            border: 1px solid #ccc;
-        }
-
-        .version-item.selected {
-            background-color: #b3d4fc;
-        }
     </style>
     <script>
-        var loginSuccess = false;
-        var showVersionList = false;
-
-        const TaskStatus = {
-            INIT: 0,
-            INPUT_LOGIN_INFO: 1,
-            LOGINING: 2,
-            LOGINED: 3,
-            LOGINING_2FA: 4,
-            LOGINED_2FA: 5,
-            SELECTED_APP: 6,
-            GET_VERSION_LIST: 7,
-            SELECT_VERSION_LIST: 8,
-            DOWNLOAD_IPA: 9,
+        const LoginStatus = {
+            UNLOGIN: 0,
+            LOGINING: 1,
+            LOGINED: 2,
+            LOGIN_ERROR: 3
         };
 
-        function startPolling() {
-            let pollingInterval = setInterval(() => {
-                var taskId = getCookie('task_id');
-                console.log('task_id:', taskId);
-
-                if (taskId == undefined || taskId.length == 0) {
-                    return
-                }
-
-                fetch(`/taskInfo`, {
-                    method: "POST"
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('taskInfo code:', data.code, " msg:", data.message);
-
-                        if (data.code != 0) {
-
-                        }else {
-                            task_status = data["taskInfo"]["task_status"]
-                            console.log('task_status:', task_status);
-
-                            if (task_status == TaskStatus.LOGINED || task_status == TaskStatus.LOGINED_2FA) {
-                                console.log('账号密码登录成功');
-                                showErrorBanner("请查询需要下载的应用");
-                                loginSuccess = true;
-                            } else if (task_status == TaskStatus.LOGINING_2FA) {
-                                console.log('账号密码需要二次验证');
-                                document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
-                                showErrorBanner("请输入验证码");
-                            } else if (task_status == TaskStatus.SELECTED_APP) {
-                                console.log('等待获取App版本信息');
-                            } else if (task_status == TaskStatus.GET_VERSION_LIST) {
-                                console.log('获取到了App版本信息');
-
-                                // showVersionList(data.taskInfo.all_version);
-                                if (!showVersionList) {
-                                    showVersionList(data["taskInfo"]["all_version"]);
-                                    showVersionList = true;
-                                }
-                            } else if (task_status == TaskStatus.DOWNLOAD_IPA) {
-                                console.log('开始下载中...');
-                            }
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('错误:', error);
-                    });
-            }, 5000);
-        }
-        startPolling();
+        const TfaStatus = {
+            UNLOGIN: 0,
+            LOGINING: 1,
+            LOGINED: 2,
+            LOGIN_ERROR: 3
+        };
 
         function loginForm(event) {
             event.preventDefault(); // 阻止表单默认提交行为
@@ -153,17 +77,21 @@
             const formData = new FormData(form);
 
             fetch("/login", {
-                method: "POST",
+                method: form.method,
                 body: new URLSearchParams(formData)
             })
                 .then(response => response.json())
                 .then(data => {
+
                     var taskId = getCookie('task_id');
                     console.log('task_id:', taskId);
 
-                    if (data.code != 0) {
-                        console.log("/login failed, code:", data.code, " msg:", data.message);
-                        showErrorBanner(data.message);
+                    if (data.code == 0) {
+                        console.log('login请求成功');
+                        startLoginResultPolling();
+                    } else {
+                        console.log('登录失败:', data.msg);
+                        showErrorBanner(data.msg);
                     }
                 })
                 .catch((error) => {
@@ -171,7 +99,29 @@
                 });
         }
 
+        function startLoginResultPolling() {
+            let pollingInterval = setInterval(() => {
+                fetch(`/loginResult`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('查询的登录结果:', data);
 
+                        if (data.code == 0) {
+                            if (data.loginStatus == LoginStatus.LOGINED) {
+                                console.log('账号密码登录成功');
+                                document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
+                                clearInterval(pollingInterval);
+                            } else if (data.loginStatus == LoginStatus.LOGIN_ERROR) {
+                                showErrorBanner(data.msg);
+                                clearInterval(pollingInterval);
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('错误:', error);
+                    });
+            }, 10000); // 每10秒轮询一次
+        }
 
         function submitVerify(event) {
             event.preventDefault(); // 阻止表单默认提交行为
@@ -180,19 +130,43 @@
             const formData = new FormData(form);
 
             fetch("/verifyCode", {
-                method: "POST",
+                method: form.method,
                 body: new URLSearchParams(formData)
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.code != 0) {
-                        console.log("/verifyCode failed, code:", data.code, " msg:", data.message);
-                        showErrorBanner(data.message);
-                    }
+                    console.log('验证结果:', data);
+                    startVerifyResultPolling();
                 })
                 .catch((error) => {
                     console.error('错误:', error);
                 });
+        }
+
+        function startVerifyResultPolling() {
+            pollingVerifyInterval = setInterval(() => {
+                fetch("/verifyCodeResult",
+                    {
+                        method: "POST"
+                    }
+                )
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('二次验证结果:', data);
+                        if (data.code == 0) {
+                            if (data.verifyCodeStatus == TfaStatus.LOGINED) {
+                                console.log('二次验证登录成功');
+                                clearInterval(pollingVerifyInterval);
+                            } else if (data.verifyCodeStatus == TfaStatus.LOGIN_ERROR) {
+                                showErrorBanner(data.msg);
+                                clearInterval(pollingVerifyInterval);
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('错误:', error);
+                    });
+            }, 2000); // 每2秒轮询一次
         }
 
         function submitSearch(event) {
@@ -207,20 +181,12 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // if (data.code != 0) {
-                    //     console.log("/searchApp failed, code:", data.code, " msg:", data.message);
-                    //     showErrorBanner(data.message);
-                    // }
-
+                    console.log('showAppList 验证结果:', data);
                     showAppList(data);
                 })
                 .catch((error) => {
                     console.error('错误:', error);
                 });
-        }
-
-        function toggleSelect(item) {
-            item.classList.toggle('selected');
         }
 
         function showErrorBanner(message) {
@@ -247,12 +213,30 @@
             }
         }
 
+        function startSearchAppVersionResultPolling() {
+            fetch('/searchAppVersionResult', {
+                method: 'POST',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Polling Result:', data);
+                    if (data.code === 0) {
+                        clearInterval(pollingSearchAppInterval);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    clearInterval(pollingSearchAppInterval);
+                });
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('sendAppInfo').addEventListener('click', function () {
                 const selectedAppItem = document.querySelector('.app-item.selected');
                 if (selectedAppItem) {
                     const appData = JSON.parse(selectedAppItem.dataset.appData);
+                    let pollingSearchAppInterval;
+
 
                     fetch('/selectApp', {
                         method: 'POST',
@@ -263,10 +247,12 @@
                     })
                         .then(response => response.json())
                         .then(data => {
-                            if (data.code != 0) {
-                                console.log("/searchApp failed, code:", data.code, " msg:", data.message);
-                                showErrorBanner(data.message);
-                            }
+                            console.log('Success:', data);
+
+                            // 启动轮询
+                            pollingSearchAppInterval = setInterval(function () {
+                                startSearchAppVersionResultPolling();
+                            }, 2000); // 每2秒轮询一次
                         })
                         .catch((error) => {
                             console.error('Error:', error);
@@ -275,40 +261,9 @@
                     alert('请先选择一个应用');
                 }
             });
-
-
-            document.getElementById('submitSelectedVersion').addEventListener('click', function () {
-                const selectedVersions = document.querySelectorAll('.version-item.selected');
-                const selectedVersionData = Array.from(selectedVersions).map(versionItem => {
-                    return {
-                        bundle_short_version_string: versionItem.querySelector('span:nth-child(2)').textContent,
-                        app_ver_id: versionItem.querySelector('span:nth-child(3)').textContent
-                    };
-                });
-
-                console.log('选中的版本:', selectedVersionData);
-                fetch('/selectAppAppVersion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(selectedVersionData)
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.code != 0) {
-                            console.log("/selectAppAppVersion failed, code:", data.code, " msg:", data.message);
-                            showErrorBanner(data.message);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('错误:', error);
-                    });
-            });
         });
-
-
-
+    </script>
+    <script>
         function showAppList(data) {
 
             // 获取显示区域
@@ -378,39 +333,6 @@
                 appList.appendChild(appItem);
             });
         }
-
-        function showVersionList(versions) {
-            const versionListContainer = document.getElementById('version-list');
-            versionListContainer.innerHTML = ''; // 清空现有内容
-
-            const decodedVersions = atob(versions);
-
-            // 解析JSON对象
-            const versionArray = JSON.parse(decodedVersions);
-
-            versionArray.forEach((version, index) => {
-                const versionItem = document.createElement('div');
-                versionItem.className = 'version-item';
-                versionItem.onclick = function () {
-                    toggleSelect(this);
-                };
-
-                const numberSpan = document.createElement('span');
-                numberSpan.textContent = index + 1;
-
-                const versionSpan = document.createElement('span');
-                versionSpan.textContent = version["bundle_short_version_string"]; // 假设版本号在version字段中
-
-                const idSpan = document.createElement('span');
-                idSpan.textContent = version["app_ver_id"];
-
-                versionItem.appendChild(numberSpan);
-                versionItem.appendChild(versionSpan);
-                versionItem.appendChild(idSpan);
-
-                versionListContainer.appendChild(versionItem);
-            });
-        }
     </script>
 </head>
 
@@ -445,12 +367,6 @@
     </div>
     <input type="text" id="selectedAppName" placeholder="选中的应用名称" readonly>
     <button id="sendAppInfo">查询应用版本信息</button>
-
-
-    <div class="version-list" id="version-list"> </div>
-    <button id="submitSelectedVersion">提交选中的版本</button>
-
-    <div class="download-list" id="download-list"> </div>
 </body>
 
 </html>

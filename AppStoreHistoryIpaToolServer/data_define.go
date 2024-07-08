@@ -10,35 +10,20 @@ const (
 	FAILED  = 1
 )
 
-//// login status
-//const (
-//	EMAIL_UNLOGIN    = 0
-//	EMAIL_LOGINING   = 1
-//	EMAIL_LOGINED    = 2
-//	EMAIL_LOGINERROR = 3
-//)
-//
-//// 2fa status
-//const (
-//	TFA_UNLOGIN     = 0
-//	TFA_LOGINING    = 1
-//	TFA_LOGINED     = 2
-//	TFA_LOGIN_ERROR = 3
-//)
-
-// task status
+// login status
 const (
-	TASK_INIT = iota
-	TASK_INPUT_LOGIN_INFO
-	TASK_LOGINING
-	TASK_LOGINED
-	TASK_LOGINING_2FA
-	TASK_LOGINED_2FA
-	TASK_SELECTED_APP
-	TASK_GET_VERSION_LIST
-	TASK_SELECT_VERSION_LIST
-	TASK_START_DOWNLOAD_IPA
-	TASK_FINISHED_DOWNLOAD_IPA
+	EMAIL_UNLOGIN    = 0
+	EMAIL_LOGINING   = 1
+	EMAIL_LOGINED    = 2
+	EMAIL_LOGINERROR = 3
+)
+
+// 2fa status
+const (
+	TFA_UNLOGIN     = 0
+	TFA_LOGINING    = 1
+	TFA_LOGINED     = 2
+	TFA_LOGIN_ERROR = 3
 )
 
 // 请求任务
@@ -50,6 +35,7 @@ type taskInfoRequest struct {
 	TaskID      string `json:"task_id"`
 }
 
+// 请求二次验证码
 type scriptCommomRequest struct {
 	TaskId string `json:"task_id"`
 }
@@ -65,20 +51,15 @@ type scriptCommonResponse struct {
 	AllVersion  string `json:"all_version"`
 }
 
-type scriptLoginResultRequest struct {
-	TaskId string `json:"task_id"`
-	Result int    `json:"result"`
-}
-
 // 上报ipa版本信息
-type scriptUploadAllVersionsRequest struct {
-	TaskId       string `json:"task_id"`
-	VersionCount int    `json:"version_count"`
-	AllVersion   []struct {
+type ipaVersionsRequest struct {
+	TaskID         string `json:"task_id"`
+	VersionCount   int    `json:"version_count"`
+	AllVersionList []struct {
 		AppVer                   string `json:"app_ver"`
 		AppVerID                 string `json:"app_ver_id"`
 		BundleShortVersionString string `json:"bundle_short_version_string"`
-	} `json:"all_version"`
+	} `json:"all_version_list"`
 }
 
 // 要下载的ipa版本
@@ -105,6 +86,10 @@ type taskIdRequestScript struct {
 }
 
 type taskIdResponseScript struct {
+	TaskId string `json:"task_id"`
+}
+
+type loginInfoRequestScript struct {
 	TaskId string `json:"task_id"`
 }
 
@@ -203,7 +188,7 @@ type Task struct {
 	LoginStatus     int     `json:"login_status"`
 	TFA             string  `json:"tfa"`
 	TFAStatus       int     `json:"tfa_status"`
-	AppBoundID      string  `json:"app_boundId"`
+	AppBoundID      string  `json:"app_boundid"`
 	AppID           string  `json:"app_id"`
 	Price           float64 `json:"price"`
 	AllVersion      string  `json:"all_version"`
@@ -211,12 +196,5 @@ type Task struct {
 	Duration        int     `json:"duration"`
 	SaveDirectory   string  `json:"save_directory"`
 	StartTime       string  `json:"start_time"`
-	TaskStatus      int     `json:"task_status"`
 	Completed       int     `json:"completed"`
-}
-
-type WebServerCommonResponse struct {
-	Code     int    `json:"code"`
-	Message  string `json:"message"`
-	TaskInfo Task   `json:"taskInfo"`
 }
