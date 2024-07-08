@@ -78,6 +78,9 @@
         }
     </style>
     <script>
+        var loginSuccess = false;
+        var showVersionList = false;
+
         const TaskStatus = {
             INIT: 0,
             INPUT_LOGIN_INFO: 1,
@@ -87,6 +90,8 @@
             LOGINED_2FA: 5,
             SELECTED_APP: 6,
             GET_VERSION_LIST: 7,
+            SELECT_VERSION_LIST: 8,
+            DOWNLOAD_IPA: 9,
         };
 
         function startPolling() {
@@ -105,14 +110,16 @@
                     .then(data => {
                         console.log('taskInfo code:', data.code, " msg:", data.message);
 
-                        if (data.code == 0) {
+                        if (data.code != 0) {
+
+                        }else {
                             task_status = data["taskInfo"]["task_status"]
                             console.log('task_status:', task_status);
 
                             if (task_status == TaskStatus.LOGINED || task_status == TaskStatus.LOGINED_2FA) {
                                 console.log('账号密码登录成功');
                                 showErrorBanner("请查询需要下载的应用");
-
+                                loginSuccess = true;
                             } else if (task_status == TaskStatus.LOGINING_2FA) {
                                 console.log('账号密码需要二次验证');
                                 document.getElementById('verifyForm').style.display = 'block'; // 显示验证码表单
@@ -123,7 +130,12 @@
                                 console.log('获取到了App版本信息');
 
                                 // showVersionList(data.taskInfo.all_version);
-                                showVersionList(data["taskInfo"]["all_version"]);
+                                if (!showVersionList) {
+                                    showVersionList(data["taskInfo"]["all_version"]);
+                                    showVersionList = true;
+                                }
+                            } else if (task_status == TaskStatus.DOWNLOAD_IPA) {
+                                console.log('开始下载中...');
                             }
                         }
                     })
@@ -285,9 +297,9 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.code != 0) {
-                        console.log("/selectAppAppVersion failed, code:", data.code, " msg:", data.message);
-                        showErrorBanner(data.message);
-                    }
+                            console.log("/selectAppAppVersion failed, code:", data.code, " msg:", data.message);
+                            showErrorBanner(data.message);
+                        }
                     })
                     .catch((error) => {
                         console.error('错误:', error);
@@ -437,6 +449,8 @@
 
     <div class="version-list" id="version-list"> </div>
     <button id="submitSelectedVersion">提交选中的版本</button>
+
+    <div class="download-list" id="download-list"> </div>
 </body>
 
 </html>
