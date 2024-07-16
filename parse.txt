@@ -136,7 +136,7 @@ Waiting login result...                             itunes_auto_login_2fa.py:219
 
 
 
-
+https://blog.csdn.net/qq_36476972/article/details/134012344
 
 
 
